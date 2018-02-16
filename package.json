@@ -2,7 +2,7 @@
 	"name": "solar-calculator",
 	"version": "0.0.1",
 	"description":
-		"Estimate how much power will you need to go offgrid with your conditions",
+		"Estimate how much power will you be able to generate given your location and placement conditions",
 	"main": "index.js",
 	"repository": {
 		"type": "git",
