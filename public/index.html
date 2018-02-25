@@ -10,11 +10,18 @@
 
 <body>
 
-    <nav class="navbar is-info" role="navigation" aria-label="main-navigation">
+    <nav class="navbar is-warning" role="navigation" aria-label="main-navigation">
         <div class="navbar-brand">
-            <a href="#" class="navbar-item">Solar Calculator</a>
+            <a href="#" class="navbar-item title is-5">Solar Calculator</a>
         </div>
         <div class="navbar-end">
+            <div class="navbar-item">
+                <p class="control">
+                    <a href="#" target="_blank" class="has-text-dark title is-5">
+                        <span>About</span>
+                    </a>
+                </p>
+            </div>
             <div class="navbar-item">
                 <p class="control">
                     <a href="https://github.com/IonutMorariu/PV-Calculator" target="_blank" class="button is-dark">
@@ -31,7 +38,7 @@
     <div class="container">
         <div class="columns">
             <div class="column is-half">
-                <h3 class="title is-4">Datos del emplazamiento</h3>
+                <h3 class="title is-4 has-text-centered">Datos del emplazamiento</h3>
                 <div class="field">
                     <label class="label" for="address">Direccion</label>
                     <div class="control has-icons-left has-icons-right">
@@ -86,35 +93,107 @@
                         </div>
                     </div>
                 </div>
-                <div class="field">
-                    <label for="" class="label">Orientación</label>
-                    <p class="control has-icons-left">
-                        <span class="select">
-                            <select>
-                                <option selected disabled>Orientación</option>
-                                <option value="0">Norte (N)</option>
-                                <option value="45">Noreste(NE)</option>
-                                <option value="90">Este (E)</option>
-                                <option value="135">Sureste (SE)</option>
-                                <option value="180">Sur (S)</option>
-                                <option value="225">Suroste (SW)</option>
-                                <option value="270">Oeste (W)</option>
-                                <option value="315">Noroeste (NW)</option>
-                            </select>
-                        </span>
-                        <span class="icon is-small is-left">
-                            <i class="fas fa-compass"></i>
-                        </span>
-                    </p>
+                <div class="field is-horizontal">
+                    <div class="field-body">
+                        <div class="field">
+                            <label for="" class="label">Orientación</label>
+                            <p class="control has-icons-left">
+                                <span class="select">
+                                    <select>
+                                        <option selected disabled>Orientación</option>
+                                        <option value="0">Norte (N)</option>
+                                        <option value="45">Noreste(NE)</option>
+                                        <option value="90">Este (E)</option>
+                                        <option value="135">Sureste (SE)</option>
+                                        <option value="180">Sur (S)</option>
+                                        <option value="225">Suroste (SW)</option>
+                                        <option value="270">Oeste (W)</option>
+                                        <option value="315">Noroeste (NW)</option>
+                                    </select>
+                                </span>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-compass"></i>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Presupuesto</label>
+                            <p class="control has-icons-left">
+                                <input type="text" class="input" placeholder="Presupuesto aproximado">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-euro-sign"></i>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="control">
-                    <a class="button is-link" id="button-get-coords">Enviar</a>
+                <div class="control has-text-centered">
+                    <a class="button is-warning is-centered" id="button-get-coords">
+                        <span class="icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
+                        <span>Enviar</span>
+                    </a>
+                </div>
+            </div>
+            <div class="column is-half">
+                <h2 class="title is-4 has-text-centered">Datos de tu instalacion</h2>
+                <div class="contenedor-informacion box">
+                    <table class="table tabla-informacion is-size-6">
+                        <thead>
+                            <th>Concepto</th>
+                            <th>Valor</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Potencia de cada panel</td>
+                                <td id="potencia-panel">300 W</td>
+                            </tr>
+                            <tr>
+                                <td>Numero de paneles</td>
+                                <td id="numero-panel">12</td>
+                            </tr>
+                            <tr>
+                                <td>Potencia instalada</td>
+                                <td id="potencia-instalada">3600 W</td>
+                            </tr>
+                            <tr>
+                                <td>Generacion anual</td>
+                                <td id="energia-anual">31.536 kWh</td>
+                            </tr>
+                            <tr>
+                                <td>Potencia del inversor</td>
+                                <td id="potencia-inversor">3800 W</td>
+                            </tr>
+                            <tr>
+                                <td>Coste de la instalacion</td>
+                                <td id="coste-instalacion">13.456 €</td>
+                            </tr>
+                            <tr>
+                                <td>Ahorro mensual</td>
+                                <td id="ahorro-mensual">123 €</td>
+                            </tr>
+                            <tr>
+                                <td>Periodo de retorno</td>
+                                <td id="tiempo-retorno">9 años</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="control has-text-centered">
+                    <a class="button is-warning" id="button-print">
+                        <span class="icon is-small">
+                            <i class="fas fa-print"></i>
+                        </span>
+                        <span>Imprimir</span>
+                    </a>
                 </div>
             </div>
         </div>
 </body>
 <script src="./scripts/apiKeys.js"></script>
-<script src="./scripts/script.js"></script>
+<script src="./scripts/dataAquisition.js"></script>
 
 
 </html>
