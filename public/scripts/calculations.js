@@ -7,7 +7,7 @@ const rad2deg = (rads) => {
 const data = {
 	latitude: 40.29,
 	longitude: -3.77,
-	medianValues: [
+	meanValues: [
 		{
 			month: 'Jan',
 			normalDay: 17,
@@ -71,7 +71,7 @@ const data = {
 	]
 };
 //1. Declinación, excentricidad y angulo amanecer
-data.medianValues.forEach((elem, index) => {
+data.meanValues.forEach((elem, index) => {
 	const decl = 23.45 * Math.sin((2 * Math.PI * (elem.normalDay + 284)) / 365);
 	const exct = 1 + 0.033 * Math.cos((2 * Math.PI * elem.normalDay) / 365);
 	elem.decl = decl;
@@ -81,19 +81,18 @@ data.medianValues.forEach((elem, index) => {
 	elem.ws = ws;
 });
 //2. Calculo Bod
-data.medianValues.forEach((elem, index) => {
+data.meanValues.forEach((elem, index) => {
 	const Bo = 1.367;
 	const cosZenit =
 		Math.cos(deg2rad(elem.decl)) *
-			Math.cos(deg2rad(elem.exct)) *
+			Math.cos(elem.ws) *
 			Math.cos(deg2rad(data.latitude)) +
 		Math.sin(deg2rad(elem.decl)) * Math.sin(deg2rad(data.latitude));
 	const zenit = rad2deg(Math.acos(cosZenit));
 	console.log(zenit);
-	const Bo0 = Bo * elem.exct * cosZenit;
 	const bod =
 		-(24 / Math.PI) *
-		Bo0 *
+		Bo *
 		elem.exct *
 		(elem.ws * Math.sin(deg2rad(data.latitude)) * Math.sin(deg2rad(elem.decl)) +
 			Math.cos(deg2rad(elem.decl)) *
@@ -102,7 +101,7 @@ data.medianValues.forEach((elem, index) => {
 	elem.B0d0 = bod;
 });
 //3. Calculo del indice de claridad
-data.medianValues.forEach((elem, index) => {
+data.meanValues.forEach((elem, index) => {
 	const Ktd = elem.medianGR / elem.B0d0;
 	elem.Ktd = Ktd;
 });
