@@ -10,7 +10,7 @@ const slope = document.querySelector('#slope');
 const area = document.querySelector('#area');
 const orientation = document.querySelector('#orientation');
 
-var calcData = {};
+let calcData = {};
 const googleApiKey = API_KEYS.GOOGLE_API_KEY;
 
 coordBtn.addEventListener('click', getCalcData);
@@ -22,8 +22,9 @@ async function getCalcData() {
 		slope: slope.value,
 		orientation: orientation.value
 	};
-	doCalculations(calcData);
-	calculateCellTemp(calcData);
+	const radiationData = await doCalculations(calcData);
+	const cellTempProfile = await calculateCellTemp(calcData);
+	console.log({ radiationData, cellTempProfile });
 }
 
 const getCoordinates = async () => {
@@ -43,20 +44,19 @@ const getCoordinates = async () => {
 	return info;
 };
 
-const doCalculations = (calcData) => {
+const doCalculations = async (calcData) => {
 	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${
 		calcData.placement.long
 	}&angle=${calcData.surfaceInfo.slope}&area=${calcData.surfaceInfo.area}&orientation=${
 		calcData.surfaceInfo.orientation
 	}`;
-	fetch(requestURL)
-		.then((res) => res.json())
-		.then((data) => {
-			console.log(data);
-		});
+
+	const res = await fetch(requestURL);
+	const data = await res.json();
+	return data.data;
 };
 
-const calculateCellTemp = (caldData) => {
+const calculateCellTemp = async (calcData) => {
 	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${
 		calcData.placement.long
 	}`;
@@ -70,17 +70,17 @@ const calculateCellTemp = (caldData) => {
 		Ncp: 1,
 		TONC: 47
 	};
-	fetch(requestURL)
-		.then((res) => res.json())
-		.then((data) => {
-			const tempProfiles = data.profiles;
-			const cellTempProfiles = tempProfiles.map(({ hourlyProfile }, index) => {
-				const TCProfile = hourlyProfile.map((temp) => {
-					const Tc = temp + (1000 * (module.TONC - 20)) / 800;
-					return Tc;
-				});
-				return { TCProfile, month: index + 1 };
-			});
-			console.log({ cellTempProfiles });
+	const res = await fetch(requestURL);
+	const data = await res.json();
+	const tempProfiles = data.profiles;
+	const cellTempProfiles = tempProfiles.map(({ hourlyProfile }, index) => {
+		const TCProfile = hourlyProfile.map((temp) => {
+			const Tc = temp + (1000 * (module.TONC - 20)) / 800;
+			return Tc;
 		});
+		return { TCProfile, month: index + 1 };
+	});
+	return cellTempProfiles;
 };
+
+const calculateVoc = (TCProfile) => {};
