@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 
-const solarDataSchema = new Schema({
+const stationDataSchema = new Schema({
 	location: {
 		type: {
 			type: String,
@@ -15,13 +15,11 @@ const solarDataSchema = new Schema({
 			}
 		]
 	},
-	meanValues: [
-		{
-			type: Number
-		}
-	]
+	emaId: {
+		type: String
+	}
 });
 
-solarDataSchema.index({ location: '2dsphere' });
+stationDataSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model('SolarData', solarDataSchema);
+module.exports = mongoose.model('StationData', stationDataSchema);

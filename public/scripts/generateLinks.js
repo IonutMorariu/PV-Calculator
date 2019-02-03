@@ -48,5 +48,6 @@ Promise.all(textPromises).then(function(values) {
 	const filteredData = data.filter((dataElement) => {
 		return dataElement.midValues != null;
 	});
-	console.log(filteredData);
+	stringData = JSON.stringify(filteredData);
+	console.log(stringData);
 });

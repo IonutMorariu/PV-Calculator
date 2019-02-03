@@ -17,6 +17,9 @@ mongoose.connection.on('error', (err) => {
 	console.error(`🙅 🚫 🙅 🚫 🙅 🚫 🙅 🚫 → ${err.message}`);
 });
 
+require('./models/SolarData');
+require('./models/StationData');
+
 // READY?! Let's go!
 
 // Start our app!
