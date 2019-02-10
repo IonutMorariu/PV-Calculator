@@ -1,5 +1,5 @@
 const googleEndpoint = 'https://maps.googleapis.com/maps/api/geocode/json?';
-const serverEndpoint = 'http://solar-calc.ionut.cc';
+const serverEndpoint = 'https://solar-calc.ionut.cc';
 
 const addressInput = document.querySelector('#address');
 const cityInput = document.querySelector('#city');
@@ -40,7 +40,13 @@ async function getCalcData() {
 	const IscProfile = calculateIsc(radiationData);
 	const ImppProfile = calculateImpp(IscProfile);
 	const VmppProfile = calculateVmpp(VocProfile);
-	console.log({ radiationData, cellTempProfile, VocProfile, IscProfile, mppValues: { ImppProfile, VmppProfile } });
+	const PmppProfile = calculatePmpp(ImppProfile, VmppProfile);
+	console.log({
+		cellTempProfile,
+		VocProfile,
+		IscProfile,
+		MPPValues: { ImppProfile, VmppProfile, PmppProfile }
+	});
 }
 
 const getCoordinates = async () => {
@@ -130,4 +136,14 @@ const calculateVmpp = (VocProfile) => {
 		return VmppArray;
 	});
 	return VmppProfile;
+};
+
+const calculatePmpp = (ImppProfile, VmppProfile) => {
+	const PmppProfile = ImppProfile.map((ImppArray, dayIndex) => {
+		const PmppArray = ImppArray.map((ImppValue, hourIndex) => {
+			return ImppValue * VmppProfile[dayIndex][hourIndex];
+		});
+		return PmppArray;
+	});
+	return PmppProfile;
 };
