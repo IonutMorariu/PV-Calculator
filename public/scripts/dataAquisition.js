@@ -15,6 +15,17 @@ const googleApiKey = API_KEYS.GOOGLE_API_KEY;
 
 coordBtn.addEventListener('click', getCalcData);
 
+const moduleData = {
+	VocStar: 57.6,
+	IscStar: 4.7,
+	VmppStar: 46.08,
+	ImppStar: 4.35,
+	Ncs: 96,
+	Ncp: 1,
+	TONC: 47,
+	Tc: 25
+};
+
 async function getCalcData() {
 	calcData.placement = await getCoordinates();
 	calcData.surfaceInfo = {
@@ -23,8 +34,15 @@ async function getCalcData() {
 		orientation: orientation.value
 	};
 	const radiationData = await doCalculations(calcData);
-	const cellTempProfile = await calculateCellTemp(calcData);
-	console.log({ radiationData, cellTempProfile });
+	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
+	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
+		const VocArray = TCProfile.map((temp) => {
+			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
+			return Voc;
+		});
+		return { VocArray, month: index + 1 };
+	});
+	console.log({ radiationData, cellTempProfile, VocProfile });
 }
 
 const getCoordinates = async () => {
@@ -56,29 +74,22 @@ const doCalculations = async (calcData) => {
 	return data.data;
 };
 
-const calculateCellTemp = async (calcData) => {
+const calculateCellTemp = async (calcData, radiationData) => {
 	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${
 		calcData.placement.long
 	}`;
-
-	const module = {
-		VocStar: 57.6,
-		IscStar: 4.7,
-		VmppStar: 46.08,
-		ImppStar: 4.35,
-		Ncs: 96,
-		Ncp: 1,
-		TONC: 47
-	};
 	const res = await fetch(requestURL);
 	const data = await res.json();
 	const tempProfiles = data.profiles;
-	const cellTempProfiles = tempProfiles.map(({ hourlyProfile }, index) => {
-		const TCProfile = hourlyProfile.map((temp) => {
-			const Tc = temp + (1000 * (module.TONC - 20)) / 800;
+	console.log(tempProfiles);
+	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, index) => {
+		const meanValue = radiationData.meanValues[index];
+		const TCProfile = hourlyTa.map((temp, index) => {
+			const Gef = meanValue.hourlyValues[index].Gtilt * 1000;
+			const Tc = temp + (Gef * (moduleData.TONC - 20)) / 800; //Cambiar 1000 por la G en el plano inclinado a esa hora
 			return Tc;
 		});
-		return { TCProfile, month: index + 1 };
+		return { TCProfile, month: index + 1, Tmax, Tmin };
 	});
 	return cellTempProfiles;
 };

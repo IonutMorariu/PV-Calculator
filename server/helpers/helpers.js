@@ -142,12 +142,12 @@ exports.calculateValues = (data) => {
 
 			const top = Math.max(0, Math.cos(tiltRad));
 			const bottom = Math.cos(zenitRad);
-			const Btilt = elem.hourlyValues[i].Bh * (top / bottom);
+			const Btilt = elem.hourlyValues[i].Bh * (top / bottom) > 0 ? elem.hourlyValues[i].Bh * (top / bottom) : 0;
 			const k1 = elem.hourlyValues[i].Bh / elem.B00[i];
 			const DcTilt = elem.hourlyValues[i].Dh * k1 * (top / bottom);
 			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2);
-			const Dtilt = DcTilt + DiTilt;
-			const Gtilt = Btilt + Dtilt;
+			const Dtilt = DcTilt + DiTilt > 0 ? DcTilt + DiTilt : 0;
+			const Gtilt = Btilt + Dtilt > 0 ? Btilt + Dtilt : 0;
 			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, Gtilt };
 		}
 	});

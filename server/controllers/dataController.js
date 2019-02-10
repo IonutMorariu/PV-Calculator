@@ -32,7 +32,6 @@ exports.getData = async (req, res, next) => {
 };
 exports.saveData = async (req, res, next) => {
 	const data = require('./data.json');
-	console.log(data);
 	data.forEach(async (elem) => {
 		const data = await new SolarData({
 			location: {
@@ -41,7 +40,6 @@ exports.saveData = async (req, res, next) => {
 			},
 			meanValues: elem.midValues
 		}).save();
-		console.log(data);
 	});
 	res.json({ Data: 'Arrived' });
 };
@@ -54,7 +52,6 @@ exports.doCalculations = async (req, res, next) => {
 	const longitude = parseFloat(req.query.longitude);
 	const angle = parseFloat(req.query.angle);
 	const orientation = parseFloat(req.query.orientation);
-	console.log({ latitude, longitude, angle, orientation });
 	const location = await SolarData.find({
 		location: {
 			$near: {
@@ -66,7 +63,6 @@ exports.doCalculations = async (req, res, next) => {
 			}
 		}
 	});
-	console.log(location);
 	if (location == []) {
 		res.status(204);
 		res.send('No data found for this location. Please make sure you have entered a valid pair of coordinates');
@@ -178,7 +174,6 @@ exports.saveStations = async (req, res, next) => {
 			},
 			emaId: elem.emaId
 		}).save();
-		console.log(data);
 	});
 	res.json({ Data: 'Arrived' });
 };
@@ -186,10 +181,7 @@ exports.saveStations = async (req, res, next) => {
 exports.getTemperatureProfile = async (req, res, next) => {
 	const latitude = parseFloat(req.query.latitude);
 	const longitude = parseFloat(req.query.longitude);
-	if (latitude == 40.6 && longitude == -3.16) {
-		console.log({ latitude, longitude });
-	}
-
+	let response;
 	const stations = await StationData.find({
 		location: {
 			$near: {
@@ -235,7 +227,6 @@ exports.getTemperatureProfile = async (req, res, next) => {
 				const Tr = (Tmax - Tmin) / 2;
 				const Ta = [];
 				const decl = 23.45 * Math.sin((2 * Math.PI * (normalDays[index] + 284)) / 365);
-				console.log(decl);
 				const cosWs = -Math.tan(deg2rad(decl)) * Math.tan(deg2rad(latitude));
 				const ws = -Math.acos(cosWs);
 				for (let h = -12; h < 12; h++) {
@@ -256,7 +247,12 @@ exports.getTemperatureProfile = async (req, res, next) => {
 				}
 				return { hourlyTa: Ta, monthNumber, Tmax, Tmin };
 			});
-			res.json({ latitude, longitude, profiles: tempProfiles });
+			response = { latitude, longitude, profiles: tempProfiles };
+			if (response) {
+				res.json(response);
+			} else {
+				res.json({ Data: 'Error with data' });
+			}
 		}
 	});
 };
