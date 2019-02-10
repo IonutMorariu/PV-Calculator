@@ -16,6 +16,7 @@ const googleApiKey = API_KEYS.GOOGLE_API_KEY;
 coordBtn.addEventListener('click', getCalcData);
 
 const moduleData = {
+	Gstar: 1000,
 	VocStar: 57.6,
 	IscStar: 4.7,
 	VmppStar: 46.08,
@@ -35,14 +36,9 @@ async function getCalcData() {
 	};
 	const radiationData = await doCalculations(calcData);
 	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
-	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
-		const VocArray = TCProfile.map((temp) => {
-			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
-			return Voc;
-		});
-		return { VocArray, month: index + 1 };
-	});
-	console.log({ radiationData, cellTempProfile, VocProfile });
+	const VocProfile = calculateVoc(cellTempProfile);
+	const IscProfile = calculateIsc(radiationData);
+	console.log({ radiationData, cellTempProfile, VocProfile, IscProfile });
 }
 
 const getCoordinates = async () => {
@@ -81,7 +77,6 @@ const calculateCellTemp = async (calcData, radiationData) => {
 	const res = await fetch(requestURL);
 	const data = await res.json();
 	const tempProfiles = data.profiles;
-	console.log(tempProfiles);
 	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, index) => {
 		const meanValue = radiationData.meanValues[index];
 		const TCProfile = hourlyTa.map((temp, index) => {
@@ -94,4 +89,25 @@ const calculateCellTemp = async (calcData, radiationData) => {
 	return cellTempProfiles;
 };
 
-const calculateVoc = (TCProfile) => {};
+const calculateVoc = (cellTempProfile) => {
+	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
+		const VocArray = TCProfile.map((temp) => {
+			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
+			return Voc;
+		});
+		return { VocArray, month: index + 1 };
+	});
+	return VocProfile;
+};
+
+const calculateIsc = (radiationData) => {
+	console.log(radiationData);
+	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
+		const IscArray = hourlyValues.map(({ Gtilt }) => {
+			const IscValue = Gtilt * 1000 * (moduleData.IscStar / moduleData.Gstar);
+			return IscValue;
+		});
+		return IscArray;
+	});
+	return IscProfile;
+};
