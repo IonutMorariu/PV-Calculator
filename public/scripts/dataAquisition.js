@@ -38,7 +38,9 @@ async function getCalcData() {
 	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
 	const VocProfile = calculateVoc(cellTempProfile);
 	const IscProfile = calculateIsc(radiationData);
-	console.log({ radiationData, cellTempProfile, VocProfile, IscProfile });
+	const ImppProfile = calculateImpp(IscProfile);
+	const VmppProfile = calculateVmpp(VocProfile);
+	console.log({ radiationData, cellTempProfile, VocProfile, IscProfile, mppValues: { ImppProfile, VmppProfile } });
 }
 
 const getCoordinates = async () => {
@@ -46,10 +48,8 @@ const getCoordinates = async () => {
 	const city = cityInput.value;
 	const postal = postalInput.value;
 	const requestURL = `${googleEndpoint}address=${address},${city},${postal},spain&key=${googleApiKey}`;
-	console.log(requestURL);
 	const response = await fetch(requestURL);
 	const data = await response.json();
-	console.log(data);
 	const info = {
 		lat: data.results[0].geometry.location.lat,
 		long: data.results[0].geometry.location.lng
@@ -101,7 +101,6 @@ const calculateVoc = (cellTempProfile) => {
 };
 
 const calculateIsc = (radiationData) => {
-	console.log(radiationData);
 	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
 		const IscArray = hourlyValues.map(({ Gtilt }) => {
 			const IscValue = Gtilt * 1000 * (moduleData.IscStar / moduleData.Gstar);
@@ -110,4 +109,25 @@ const calculateIsc = (radiationData) => {
 		return IscArray;
 	});
 	return IscProfile;
+};
+
+const calculateImpp = (IscProfile) => {
+	const ImppProfile = IscProfile.map((IscArray) => {
+		const ImppArray = IscArray.map((IscValue) => {
+			return IscValue * (moduleData.ImppStar / moduleData.IscStar);
+		});
+		return ImppArray;
+	});
+	return ImppProfile;
+};
+
+const calculateVmpp = (VocProfile) => {
+	console.log(VocProfile);
+	const VmppProfile = VocProfile.map(({ VocArray }) => {
+		const VmppArray = VocArray.map((VocValue) => {
+			return VocValue * (moduleData.VmppStar / moduleData.VocStar);
+		});
+		return VmppArray;
+	});
+	return VmppProfile;
 };
