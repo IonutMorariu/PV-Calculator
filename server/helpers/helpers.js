@@ -92,9 +92,8 @@ exports.calculateValues = (data) => {
 	newData.meanValues.forEach((elem, index) => {
 		const rd = [];
 		for (let h = -12; h < 12; h++) {
-			const rdval =
-				(Math.PI / 24) *
-				((Math.cos(deg2rad(h * 15)) - Math.cos(elem.ws)) / (elem.ws * Math.cos(elem.ws) - Math.sin(elem.ws)));
+			const hRad = Math.cos(deg2rad(h * 15)) > 0 ? Math.cos(deg2rad(h * 15)) : 0;
+			const rdval = (Math.PI / 24) * ((hRad - Math.cos(elem.ws)) / (elem.ws * Math.cos(elem.ws) - Math.sin(elem.ws)));
 			rd.push(rdval);
 		}
 		const a = 0.409 - 0.5016 * Math.sin(elem.ws + Math.PI / 3);
@@ -103,7 +102,8 @@ exports.calculateValues = (data) => {
 		const rg = [];
 		let i = 0;
 		for (let h = -12; h < 12; h++) {
-			const rgval = rd[i] * (a + b * Math.cos(deg2rad(h * 15)));
+			const hRad = Math.cos(deg2rad(h * 15)) > 0 ? Math.cos(deg2rad(h * 15)) : 0;
+			const rgval = rd[i] * (a + b * hRad);
 			rg.push(rgval);
 			i++;
 		}
@@ -140,11 +140,11 @@ exports.calculateValues = (data) => {
 			const tiltRad = deg2rad(elem.tilt[i]);
 			const betaRad = deg2rad(newData.angle);
 
-			const top = Math.max(0, Math.cos(tiltRad));
-			const bottom = Math.cos(zenitRad);
-			const Btilt = elem.hourlyValues[i].Bh * (top / bottom) > 0 ? elem.hourlyValues[i].Bh * (top / bottom) : 0;
+			const numerator = Math.max(0, Math.cos(tiltRad));
+			const denominator = Math.cos(zenitRad);
+			const Btilt = elem.hourlyValues[i].Bh * (numerator / denominator) > 0 ? elem.hourlyValues[i].Bh * (numerator / denominator) : 0;
 			const k1 = elem.hourlyValues[i].Bh / elem.B00[i];
-			const DcTilt = elem.hourlyValues[i].Dh * k1 * (top / bottom);
+			const DcTilt = elem.hourlyValues[i].Dh * k1 * (numerator / denominator);
 			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2);
 			const Dtilt = DcTilt + DiTilt > 0 ? DcTilt + DiTilt : 0;
 			const Gtilt = Btilt + Dtilt > 0 ? Btilt + Dtilt : 0;
