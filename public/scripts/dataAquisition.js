@@ -9,6 +9,8 @@ const coordsContainer = document.querySelector('#coords-container');
 const slope = document.querySelector('#slope');
 const area = document.querySelector('#area');
 const orientation = document.querySelector('#orientation');
+const dirtLevel = document.querySelector('#dirt-level');
+const applyDirt = document.querySelector('#apply-dirt');
 
 let calcData = {};
 const googleApiKey = API_KEYS.GOOGLE_API_KEY;
@@ -43,10 +45,13 @@ const inverterData = {
 
 async function getCalcData() {
 	calcData.placement = await getCoordinates();
+
 	calcData.surfaceInfo = {
 		area: area.value,
 		slope: slope.value,
-		orientation: orientation.value
+		orientation: orientation.value,
+		dirtLevel: dirtLevel.value,
+		applyDirt: applyDirt.checked // true
 	};
 	const radiationData = await doCalculations(calcData);
 	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
@@ -91,7 +96,9 @@ const getCoordinates = async () => {
 const doCalculations = async (calcData) => {
 	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}&angle=${
 		calcData.surfaceInfo.slope
-	}&area=${calcData.surfaceInfo.area}&orientation=${calcData.surfaceInfo.orientation}`;
+	}&area=${calcData.surfaceInfo.area}&orientation=${calcData.surfaceInfo.orientation}&applyDirtLevel=${
+		calcData.surfaceInfo.applyDirt
+	}&dirtLevel=${calcData.surfaceInfo.dirtLevel}`;
 
 	const res = await fetch(requestURL);
 	const data = await res.json();

@@ -153,7 +153,6 @@ exports.calculateValues = (data) => {
 	//8. From horizontal plane to tilted plane
 	newData.meanValues.forEach((elem, index) => {
 		for (let i = 0; i < 24; i++) {
-			let tiltByZenit = 0;
 			const zenitRad = deg2rad(elem.zenit[i]);
 			const tiltRad = deg2rad(elem.tilt[i]);
 			const betaRad = deg2rad(newData.angle);
@@ -166,10 +165,68 @@ exports.calculateValues = (data) => {
 			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2);
 			const Dtilt = DcTilt + DiTilt;
 			const Gtilt = Btilt + Dtilt;
-			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, Gtilt };
+			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, DcTilt, DiTilt, Gtilt };
 		}
 	});
 
+	if (newData.applyDirtLevel) {
+		//8.1 Aplicando perdidas por suciedad y angulo de incidencia
+		newData.meanValues.forEach((elem, index) => {
+			for (let i = 0; i < 24; i++) {
+				const tiltRad = deg2rad(elem.tilt[i]);
+				const betaRad = deg2rad(newData.angle);
+				let TDirtTClean = 1;
+				let ar = 0.17;
+				let c1 = 4 / (Math.PI * 3);
+				let c2 = -0.069;
+				switch (newData.dirtLevel) {
+					case 'CLEAN':
+						TDirtTClean = 1;
+						ar = 0.17;
+						c2 = -0.069;
+						break;
+					case 'LOW':
+						TDirtTClean = 0.98;
+						ar = 0.2;
+						c2 = -0.054;
+						break;
+					case 'MID':
+						TDirtTClean = 0.97;
+						ar = 0.21;
+						c2 = -0.049;
+						break;
+					case 'HIGH':
+						TDirtTClean = 0.92;
+						ar = 0.27;
+						c2 = -0.023;
+					default:
+						TDirtTClean = 1;
+						ar = 0.17;
+						c2 = -0.069;
+				}
+
+				const FTB = (Math.exp(-Math.cos(tiltRad) / ar) - Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar));
+				const expFTD =
+					-(1 / ar) *
+					(c1 * (Math.sin(betaRad) + (Math.PI - betaRad - Math.sin(betaRad)) / (1 + Math.cos(betaRad))) +
+						c2 * Math.pow(Math.sin(betaRad) + (Math.PI - betaRad - Math.sin(betaRad)) / (1 + Math.cos(betaRad)), 2));
+				const FTD = Math.exp(expFTD);
+
+				const Btilt = elem.hourlyValues[i].Btilt * TDirtTClean * (1 - FTB);
+				const DiTilt = elem.hourlyValues[i].DiTilt * TDirtTClean * (1 - FTD);
+				const DcTilt = elem.hourlyValues[i].DcTilt * TDirtTClean * (1 - FTB);
+				const Dtilt = DiTilt + DcTilt;
+				const Gtilt = Dtilt + Btilt;
+
+				//Overwrite data with new values
+				elem.hourlyValues[i].Btilt = Btilt;
+				elem.hourlyValues[i].DiTilt = DiTilt;
+				elem.hourlyValues[i].DcTilt = DcTilt;
+				elem.hourlyValues[i].Dtilt = Dtilt;
+				elem.hourlyValues[i].Gtilt = Gtilt;
+			}
+		});
+	}
 	//9. Elección de valores clave
 	newData.meanValues.forEach((elem, index) => {
 		const significantValues = [];
