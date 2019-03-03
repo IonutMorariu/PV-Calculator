@@ -27,6 +27,20 @@ const moduleData = {
 	Tc: 25
 };
 
+const generatordata = {
+	seriesModules: 12,
+	parallelModules: 11
+};
+
+const inverterData = {
+	k0: 0.01,
+	k1: 0.025,
+	k2: 0.05,
+	power: 25000,
+	vMin: 420,
+	vMax: 750
+};
+
 async function getCalcData() {
 	calcData.placement = await getCoordinates();
 	calcData.surfaceInfo = {
@@ -41,11 +55,21 @@ async function getCalcData() {
 	const ImppProfile = calculateImpp(IscProfile);
 	const VmppProfile = calculateVmpp(VocProfile);
 	const PmppProfile = calculatePmpp(ImppProfile, VmppProfile);
+	const PdcProfile = calculateGeneratorPower(PmppProfile);
+	const PiProfile = calculatePiProfile(PdcProfile);
+	const PoProfile = calculatePoProfile(PiProfile);
+	const PacProfile = calculatePacProfile(PoProfile);
+	const MonthlyEnergyW = calculateMonthlyEnergy(PacProfile);
+	const MonthlyEnergykWh = MonthlyEnergyW.map((val) => val / 1000);
+	const AnualEnergyW = calculateAnualEnergy(MonthlyEnergyW);
+	const AnualEnergykWh = AnualEnergyW / 1000;
+
 	console.log({
-		cellTempProfile,
-		VocProfile,
-		IscProfile,
-		MPPValues: { ImppProfile, VmppProfile, PmppProfile }
+		radiationData,
+		PdcProfile,
+		PacProfile,
+		MonthlyEnergy: { MonthlyEnergyW, MonthlyEnergykWh },
+		AnualEnergy: { AnualEnergyW, AnualEnergykWh }
 	});
 }
 
@@ -65,11 +89,9 @@ const getCoordinates = async () => {
 };
 
 const doCalculations = async (calcData) => {
-	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${
-		calcData.placement.long
-	}&angle=${calcData.surfaceInfo.slope}&area=${calcData.surfaceInfo.area}&orientation=${
-		calcData.surfaceInfo.orientation
-	}`;
+	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}&angle=${
+		calcData.surfaceInfo.slope
+	}&area=${calcData.surfaceInfo.area}&orientation=${calcData.surfaceInfo.orientation}`;
 
 	const res = await fetch(requestURL);
 	const data = await res.json();
@@ -77,9 +99,7 @@ const doCalculations = async (calcData) => {
 };
 
 const calculateCellTemp = async (calcData, radiationData) => {
-	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${
-		calcData.placement.long
-	}`;
+	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}`;
 	const res = await fetch(requestURL);
 	const data = await res.json();
 	const tempProfiles = data.profiles;
@@ -146,4 +166,62 @@ const calculatePmpp = (ImppProfile, VmppProfile) => {
 		return PmppArray;
 	});
 	return PmppProfile;
+};
+
+const calculateGeneratorPower = (PmppProfile) => {
+	const PdcProfile = PmppProfile.map((PmppArray) => {
+		return PmppArray.map((PmppValue) => {
+			return PmppValue * generatordata.seriesModules * generatordata.parallelModules;
+		});
+	});
+	return PdcProfile;
+};
+
+const calculatePiProfile = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return PdcArray.map((PdcValue) => {
+			return PdcValue / inverterData.power;
+		});
+	});
+};
+
+const calculatePoProfile = (PiProfile) => {
+	return PiProfile.map((PiArray) => {
+		return PiArray.map((PiValue) => {
+			if (PiValue <= 0) {
+				return 0;
+			}
+			const a = inverterData.k2;
+			const b = inverterData.k1 + 1;
+			const c = inverterData.k0 - PiValue;
+			const firstSolution = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			const secondSolution = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			return firstSolution > 0 ? firstSolution : secondSolution;
+		});
+	});
+};
+
+const calculatePacProfile = (PoProfile) => {
+	return PoProfile.map((PoArray) => {
+		return PoArray.map((PoValue) => {
+			return PoValue * inverterData.power;
+		});
+	});
+};
+
+const calculateMonthlyEnergy = (PacProfile) => {
+	return PacProfile.map((PacArray) => {
+		return (
+			30 *
+			PacArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+			}, 0)
+		);
+	});
+};
+
+const calculateAnualEnergy = (MonthlyEnergy) => {
+	return MonthlyEnergy.reduce((total, currentValue) => {
+		return total + (currentValue > 0 ? currentValue : 0);
+	}, 0);
 };
