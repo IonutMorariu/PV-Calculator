@@ -38,7 +38,6 @@ exports.calculateValues = (data) => {
 			zenit.push(zenitVal);
 		}
 		elem.zenit = zenit;
-
 		for (let h = -12; h < 12; h++) {
 			const betaRad = deg2rad(newData.angle);
 			const alphaRad = deg2rad(newData.orientation);
@@ -52,6 +51,12 @@ exports.calculateValues = (data) => {
 				Math.sin(betaRad) * Math.sin(alphaRad) * Math.cos(declRad) * Math.sin(hRad) +
 				Math.cos(betaRad) * Math.cos(declRad) * Math.cos(hRad) * Math.cos(latRad) +
 				Math.cos(betaRad) * Math.sin(declRad) * Math.sin(latRad);
+			console.log({
+				data: { angle: newData.angle, orientation: newData.orientation, lat: newData.latitude, decl: elem.decl },
+				h,
+				anglIncidenciaVal,
+				mes: index
+			});
 			const anglIncidencia = rad2deg(Math.acos(anglIncidenciaVal));
 			tilt.push(anglIncidencia);
 			elem.tilt = tilt;
@@ -92,7 +97,7 @@ exports.calculateValues = (data) => {
 	newData.meanValues.forEach((elem, index) => {
 		const rd = [];
 		for (let h = -12; h < 12; h++) {
-			const hRad = Math.cos(deg2rad(h * 15)) > 0 ? Math.cos(deg2rad(h * 15)) : 0;
+			const hRad = Math.cos(deg2rad(h * 15));
 			const rdval = (Math.PI / 24) * ((hRad - Math.cos(elem.ws)) / (elem.ws * Math.cos(elem.ws) - Math.sin(elem.ws)));
 			rd.push(rdval);
 		}
@@ -102,7 +107,7 @@ exports.calculateValues = (data) => {
 		const rg = [];
 		let i = 0;
 		for (let h = -12; h < 12; h++) {
-			const hRad = Math.cos(deg2rad(h * 15)) > 0 ? Math.cos(deg2rad(h * 15)) : 0;
+			const hRad = Math.cos(deg2rad(h * 15));
 			const rgval = rd[i] * (a + b * hRad);
 			rg.push(rgval);
 			i++;
@@ -118,15 +123,28 @@ exports.calculateValues = (data) => {
 		const dawn = rad2deg(elem.ws) / 15;
 		elem.dawn = dawn;
 		for (let i = 0; i < 24; i++) {
-			const Dh = elem.rd[i] * elem.Dd0;
-			const Gh = elem.rg[i] * elem.meanGR;
-			const Bh = Gh - Dh;
-			hourlyValues.push({
-				Bh,
-				Dh,
-				Gh,
-				hour
-			});
+			const cosHour = Math.cos(deg2rad(hour * 15));
+			const cosWs = Math.cos(elem.ws);
+			if (cosHour > cosWs) {
+				const Dh = elem.rd[i] * elem.Dd0;
+				const Gh = elem.rg[i] * elem.meanGR;
+				const Bh = Gh - Dh;
+				hourlyValues.push({
+					Bh,
+					Dh,
+					Gh,
+					cosHour,
+					cosWs
+				});
+			} else {
+				hourlyValues.push({
+					Bh: 0,
+					Dh: 0,
+					Gh: 0,
+					cosHour,
+					cosWs
+				});
+			}
 			hour++;
 		}
 		elem.hourlyValues = hourlyValues;
@@ -142,12 +160,12 @@ exports.calculateValues = (data) => {
 
 			const numerator = Math.max(0, Math.cos(tiltRad));
 			const denominator = Math.cos(zenitRad);
-			const Btilt = elem.hourlyValues[i].Bh * (numerator / denominator) > 0 ? elem.hourlyValues[i].Bh * (numerator / denominator) : 0;
+			const Btilt = elem.hourlyValues[i].Bh * (numerator / denominator);
 			const k1 = elem.hourlyValues[i].Bh / elem.B00[i];
 			const DcTilt = elem.hourlyValues[i].Dh * k1 * (numerator / denominator);
 			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2);
-			const Dtilt = DcTilt + DiTilt > 0 ? DcTilt + DiTilt : 0;
-			const Gtilt = Btilt + Dtilt > 0 ? Btilt + Dtilt : 0;
+			const Dtilt = DcTilt + DiTilt;
+			const Gtilt = Btilt + Dtilt;
 			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, Gtilt };
 		}
 	});
