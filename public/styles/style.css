@@ -15,3 +15,11 @@ body {
 .tabla-informacion {
 	margin: 0 auto;
 }
+
+.test-data {
+	border: 1px solid #efefef;
+	margin-bottom: 30px;
+}
+.test-data td {
+	padding: 5px 10px;
+}

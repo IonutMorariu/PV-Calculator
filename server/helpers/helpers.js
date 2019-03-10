@@ -168,17 +168,17 @@ exports.calculateValues = (data) => {
 			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, DcTilt, DiTilt, Gtilt };
 		}
 	});
+	newData.applyDirtLevel = true;
 
-	if (newData.applyDirtLevel) {
-		//8.1 Aplicando perdidas por suciedad y angulo de incidencia
+	if (newData.applyDirtLevel === true) {
 		newData.meanValues.forEach((elem, index) => {
 			for (let i = 0; i < 24; i++) {
 				const tiltRad = deg2rad(elem.tilt[i]);
 				const betaRad = deg2rad(newData.angle);
-				let TDirtTClean = 1;
-				let ar = 0.17;
-				let c1 = 4 / (Math.PI * 3);
-				let c2 = -0.069;
+				let TDirtTClean = 0;
+				let ar = 0;
+				let c1 = 4 / (3 * Math.PI);
+				let c2 = 0;
 				switch (newData.dirtLevel) {
 					case 'CLEAN':
 						TDirtTClean = 1;
@@ -200,11 +200,14 @@ exports.calculateValues = (data) => {
 						ar = 0.27;
 						c2 = -0.023;
 					default:
-						TDirtTClean = 1;
-						ar = 0.17;
-						c2 = -0.069;
+						TDirtTClean = 0;
+						ar = 0;
+						c2 = 0;
 				}
-
+				newData.TDirtTClean = TDirtTClean;
+				newData.ar = ar;
+				newData.c1 = c1;
+				newData.c2 = c2;
 				const FTB = (Math.exp(-Math.cos(tiltRad) / ar) - Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar));
 				const expFTD =
 					-(1 / ar) *

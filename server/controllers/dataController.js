@@ -51,6 +51,8 @@ exports.doCalculations = async (req, res, next) => {
 	const latitude = parseFloat(req.query.latitude);
 	const longitude = parseFloat(req.query.longitude);
 	const angle = parseFloat(req.query.angle);
+	const applyDirtLevel = req.query.applyDirtLevel;
+	const dirtLevel = req.query.dirtLevel;
 	const orientation = parseFloat(req.query.orientation);
 	const location = await SolarData.find({
 		location: {
@@ -75,6 +77,8 @@ exports.doCalculations = async (req, res, next) => {
 		latitude: locationData.location.coordinates[1],
 		angle,
 		orientation,
+		applyDirtLevel,
+		dirtLevel,
 		meanValues: [
 			{
 				month: 'Jan',
@@ -146,8 +150,7 @@ exports.doCalculations = async (req, res, next) => {
 
 exports.saveStations = async (req, res, next) => {
 	const response = await axios(
-		'https://opendata.aemet.es/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones/?api_key=' +
-			process.env.AEMET_API
+		'https://opendata.aemet.es/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones/?api_key=' + process.env.AEMET_API
 	);
 	const data = response.data;
 	const datosResponse = await axios(data.datos);

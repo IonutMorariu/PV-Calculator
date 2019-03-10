@@ -5,7 +5,7 @@
     <title>Solar calculator</title>
     <link rel="stylesheet" href="./styles/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
-    <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
 </head>
 
 <body>
@@ -98,19 +98,21 @@
                         <div class="field">
                             <label for="" class="label">Orientación</label>
                             <p class="control has-icons-left">
-                                <span class="select">
+                                    <input class="input" type="number" placeholder="Orientacion" id="orientation" required value="0">
+
+                                <!-- <span class="select">
                                     <select id="orientation">
                                         <option disabled>Orientación</option>
                                         <option value="180">Norte (N)</option>
-                                        <option value="135">Noreste(NE)</option>
-                                        <option value="90">Este (E)</option>
-                                        <option value="45">Sureste (SE)</option>
+                                        <option value="225">Noreste(NE)</option>
+                                        <option value="270">Este (E)</option>
+                                        <option value="315">Sureste (SE)</option>
                                         <option selected value="0">Sur (S)</option>
-                                        <option value="315">Suroste (SW)</option>
-                                        <option value="270">Oeste (W)</option>
-                                        <option value="225">Noroeste (NW)</option>
+                                        <option value="45">Suroste (SW)</option>
+                                        <option value="90">Oeste (W)</option>
+                                        <option value="135">Noroeste (NW)</option>
                                     </select>
-                                </span>
+                                </span> -->
                                 <span class="icon is-small is-left">
                                     <i class="fas fa-compass"></i>
                                 </span>
@@ -123,22 +125,13 @@
                                     <select id="dirt-level">
                                         <option disabled>Suciedad</option>
                                         <option value="CLEAN">Limpio</option>
-                                        <option value="LOW">Nivel bajo</option>
+                                        <option selected value="LOW">Nivel bajo</option>
                                         <option value="MID">Nivel medio</option>
                                         <option value="HIGH">Nivel alto</option>
                                     </select>
                                 </span>
                                 <span class="icon is-small is-left">
-                                    <i class="fas fa-compass"></i>
-                                </span>
-                            </p>
-                        </div>
-                        <div class="field">
-                            <label for="" class="label">Presupuesto</label>
-                            <p class="control has-icons-left">
-                                <input type="text" class="input" placeholder="Presupuesto aproximado">
-                                <span class="icon is-small is-left">
-                                    <i class="fas fa-euro-sign"></i>
+                                    <i class="fas fa-broom"></i>
                                 </span>
                             </p>
                         </div>
@@ -147,7 +140,7 @@
                 </div>
                 <div class="field">
                     <label class="checkbox">
-                        <input id="apply-dirt" type="checkbox">
+                        <input id="apply-dirt" type="checkbox" checked aria-checked="true">
                         Aplicar suciedad y angulo de incidencia (solo para pruebas)
                       </label>
                 </div>
@@ -213,6 +206,20 @@
                     </a>
                 </div>
             </div>
+        </div>
+        <div>
+            <table class="test-data" border="1">
+                <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>G0d</th>
+                      <th>Gefd</th>
+                      <th>Defd</th>
+                      <th>Befd</th>
+                    </tr>
+                  </thead>
+                  <tbody id="radiation-data"></tbody>
+            </table>
         </div>
 </body>
 <script src="./scripts/apiKeys.js"></script>

@@ -11,6 +11,7 @@ const area = document.querySelector('#area');
 const orientation = document.querySelector('#orientation');
 const dirtLevel = document.querySelector('#dirt-level');
 const applyDirt = document.querySelector('#apply-dirt');
+const tableBody = document.querySelector('#radiation-data');
 
 let calcData = {};
 const googleApiKey = API_KEYS.GOOGLE_API_KEY;
@@ -44,6 +45,8 @@ const inverterData = {
 };
 
 async function getCalcData() {
+	tableBody.innerHTML = 'Loading...';
+
 	calcData.placement = await getCoordinates();
 
 	calcData.surfaceInfo = {
@@ -68,6 +71,8 @@ async function getCalcData() {
 	const MonthlyEnergykWh = MonthlyEnergyW.map((val) => val / 1000);
 	const AnualEnergyW = calculateAnualEnergy(MonthlyEnergyW);
 	const AnualEnergykWh = AnualEnergyW / 1000;
+
+	createTable(radiationData, tableBody);
 
 	console.log({
 		radiationData,
@@ -231,4 +236,38 @@ const calculateAnualEnergy = (MonthlyEnergy) => {
 	return MonthlyEnergy.reduce((total, currentValue) => {
 		return total + (currentValue > 0 ? currentValue : 0);
 	}, 0);
+};
+
+const createTable = (radiationData, tableBody) => {
+	tableBody.innerHTML = '';
+	const { meanValues } = radiationData;
+
+	meanValues.forEach((value, index) => {
+		const row = document.createElement('tr');
+		let Gefd = 0;
+		let Defd = 0;
+		let Befd = 0;
+
+		value.hourlyValues.forEach((hValue) => {
+			Gefd += hValue.Gtilt;
+			Defd += hValue.Dtilt;
+			Befd += hValue.Btilt;
+		});
+		const G0dCell = document.createElement('td');
+		G0dCell.textContent = value.meanGR;
+		const GefdCell = document.createElement('td');
+		GefdCell.textContent = Gefd;
+		const DefdCell = document.createElement('td');
+		DefdCell.textContent = Defd;
+		const BefdCell = document.createElement('td');
+		BefdCell.textContent = Befd;
+		const monthCell = document.createElement('td');
+		monthCell.textContent = index + 1;
+		row.appendChild(monthCell);
+		row.appendChild(G0dCell);
+		row.appendChild(GefdCell);
+		row.appendChild(DefdCell);
+		row.appendChild(BefdCell);
+		tableBody.appendChild(row);
+	});
 };
