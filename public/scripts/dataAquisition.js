@@ -27,7 +27,9 @@ const moduleData = {
 	Ncs: 96,
 	Ncp: 1,
 	TONC: 47,
-	Tc: 25
+	Tc: 25,
+	Vt: 0.025,
+	m: 1.3
 };
 
 const generatordata = {
@@ -58,28 +60,34 @@ async function getCalcData() {
 	};
 	const radiationData = await doCalculations(calcData);
 	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
+	console.log(cellTempProfile);
 	const VocProfile = calculateVoc(cellTempProfile);
 	const IscProfile = calculateIsc(radiationData);
-	const ImppProfile = calculateImpp(IscProfile);
-	const VmppProfile = calculateVmpp(VocProfile);
+	const { VmppProfile, ImppProfile, RsStar, rs, koc, DM0, DM, impp, vmpp } = applyVariableFF(VocProfile, IscProfile, cellTempProfile);
 	const PmppProfile = calculatePmpp(ImppProfile, VmppProfile);
 	const PdcProfile = calculateGeneratorPower(PmppProfile);
 	const PiProfile = calculatePiProfile(PdcProfile);
 	const PoProfile = calculatePoProfile(PiProfile);
 	const PacProfile = calculatePacProfile(PoProfile);
-	const MonthlyEnergyW = calculateMonthlyEnergy(PacProfile);
-	const MonthlyEnergykWh = MonthlyEnergyW.map((val) => val / 1000);
-	const AnualEnergyW = calculateAnualEnergy(MonthlyEnergyW);
+	const MonthlyEac = calculateMonthlyEac(PacProfile);
+	const MonthlyEdc = calculateMonthlyEdc(PdcProfile);
+	const Yf = MonthlyEac.map((val) => val / (moduleData.VmppStar * moduleData.ImppStar * 12 * 11));
+	const MonthlyEnergykWh = MonthlyEac.map((val) => val / 1000);
+	const AnualEnergyW = calculateAnualEnergy(MonthlyEac);
 	const AnualEnergykWh = AnualEnergyW / 1000;
 
-	createTable(radiationData, tableBody);
+	// createTable(radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody);
 
 	console.log({
 		radiationData,
 		PdcProfile,
 		PacProfile,
-		MonthlyEnergy: { MonthlyEnergyW, MonthlyEnergykWh },
-		AnualEnergy: { AnualEnergyW, AnualEnergykWh }
+		MppValues: { VmppProfile, ImppProfile },
+		VocProfile,
+		IscProfile,
+		cellTempProfile,
+		IscProfile,
+		variableFF: { RsStar, rs, koc, DM0, DM, impp, vmpp }
 	});
 }
 
@@ -119,7 +127,7 @@ const calculateCellTemp = async (calcData, radiationData) => {
 		const meanValue = radiationData.meanValues[index];
 		const TCProfile = hourlyTa.map((temp, index) => {
 			const Gef = meanValue.hourlyValues[index].Gtilt * 1000;
-			const Tc = temp + (Gef * (moduleData.TONC - 20)) / 800; //Cambiar 1000 por la G en el plano inclinado a esa hora
+			const Tc = 25 + (Gef * (moduleData.TONC - 20)) / 800; //Cambiar 1000 por la G en el plano inclinado a esa hora
 			return Tc;
 		});
 		return { TCProfile, month: index + 1, Tmax, Tmin };
@@ -133,7 +141,7 @@ const calculateVoc = (cellTempProfile) => {
 			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
 			return Voc;
 		});
-		return { VocArray, month: index + 1 };
+		return VocArray;
 	});
 	return VocProfile;
 };
@@ -149,25 +157,59 @@ const calculateIsc = (radiationData) => {
 	return IscProfile;
 };
 
-const calculateImpp = (IscProfile) => {
-	const ImppProfile = IscProfile.map((IscArray) => {
-		const ImppArray = IscArray.map((IscValue) => {
-			return IscValue * (moduleData.ImppStar / moduleData.IscStar);
-		});
-		return ImppArray;
-	});
-	return ImppProfile;
-};
+const applyVariableFF = (VocProfile, IscProfile, cellTempProfile) => {
+	const Vtn = (moduleData.Vt * (273 + 25)) / 300;
+	const RsStar =
+		(moduleData.VocStar / moduleData.Ncs -
+			moduleData.VmppStar / moduleData.Ncs +
+			moduleData.m * Vtn * Math.log(1 - moduleData.ImppStar / moduleData.IscStar)) /
+		(moduleData.ImppStar / moduleData.Ncp);
 
-const calculateVmpp = (VocProfile) => {
-	console.log(VocProfile);
-	const VmppProfile = VocProfile.map(({ VocArray }) => {
-		const VmppArray = VocArray.map((VocValue) => {
-			return VocValue * (moduleData.VmppStar / moduleData.VocStar);
+	const rs = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return RsStar * ((moduleData.Ncs / moduleData.Ncp) * (IscProfile[arrIndex][valIndex] / VocValue));
 		});
-		return VmppArray;
 	});
-	return VmppProfile;
+	const koc = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return VocValue / moduleData.Ncs / (moduleData.m * ((moduleData.Vt * (cellTempProfile[arrIndex].TCProfile[valIndex] + 273)) / 300));
+		});
+	});
+	const DM0 = koc.map((kocArray, arrIndex) => {
+		return kocArray.map((kocValue, valIndex) => {
+			return (kocValue - 1) / (kocValue - Math.log(kocValue));
+		});
+	});
+	const DM = DM0.map((DM0Array, arrIndex) => {
+		return DM0Array.map((DM0Value, valIndex) => {
+			return DM0Value + 2 * rs[arrIndex][valIndex] * Math.pow(DM0Value, 2);
+		});
+	});
+
+	const impp = DM.map((DMArray, arrIndex) => {
+		return DMArray.map((DMValue, valIndex) => {
+			return 1 - DMValue / koc[arrIndex][valIndex];
+		});
+	});
+
+	const vmpp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return 1 - Math.log(koc[arrIndex][valIndex] / DM[arrIndex][valIndex]) / koc[arrIndex][valIndex] - rs[arrIndex][valIndex] * imppValue;
+		});
+	});
+
+	const Vmpp = vmpp.map((vmppArray, arrIndex) => {
+		return vmppArray.map((vmppValue, valIndex) => {
+			return vmppValue * VocProfile[arrIndex][valIndex];
+		});
+	});
+	const Impp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return imppValue * IscProfile[arrIndex][valIndex];
+		});
+	});
+
+	return { VmppProfile: Vmpp, ImppProfile: Impp, RsStar, rs, koc, DM0, DM, impp, vmpp };
 };
 
 const calculatePmpp = (ImppProfile, VmppProfile) => {
@@ -221,11 +263,23 @@ const calculatePacProfile = (PoProfile) => {
 	});
 };
 
-const calculateMonthlyEnergy = (PacProfile) => {
+const calculateMonthlyEac = (PacProfile) => {
 	return PacProfile.map((PacArray) => {
 		return (
 			30 *
 			PacArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+				EacCell.textContent = MonthlyEac[index];
+			}, 0)
+		);
+	});
+};
+
+const calculateMonthlyEdc = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return (
+			30 *
+			PdcArray.reduce((total, currentValue) => {
 				return total + (currentValue > 0 ? currentValue : 0);
 			}, 0)
 		);
@@ -238,7 +292,7 @@ const calculateAnualEnergy = (MonthlyEnergy) => {
 	}, 0);
 };
 
-const createTable = (radiationData, tableBody) => {
+const createTable = (radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody) => {
 	tableBody.innerHTML = '';
 	const { meanValues } = radiationData;
 
@@ -255,6 +309,10 @@ const createTable = (radiationData, tableBody) => {
 		});
 		const G0dCell = document.createElement('td');
 		G0dCell.textContent = value.meanGR;
+		const Bd0Cell = document.createElement('td');
+		Bd0Cell.textContent = value.Dd0;
+		const Dd0dCell = document.createElement('td');
+		Dd0dCell.textContent = value.Bd0;
 		const GefdCell = document.createElement('td');
 		GefdCell.textContent = Gefd;
 		const DefdCell = document.createElement('td');
@@ -263,11 +321,22 @@ const createTable = (radiationData, tableBody) => {
 		BefdCell.textContent = Befd;
 		const monthCell = document.createElement('td');
 		monthCell.textContent = index + 1;
+		const EacCell = document.createElement('td');
+		EacCell.textContent = MonthlyEac[index] / 1000;
+		const EdcCell = document.createElement('td');
+		EdcCell.textContent = MonthlyEdc[index] / 1000;
+		const YfCell = document.createElement('td');
+		YfCell.textContent = Yf[index];
 		row.appendChild(monthCell);
 		row.appendChild(G0dCell);
+		row.appendChild(Bd0Cell);
+		row.appendChild(Dd0dCell);
 		row.appendChild(GefdCell);
 		row.appendChild(DefdCell);
 		row.appendChild(BefdCell);
+		row.appendChild(EacCell);
+		row.appendChild(EdcCell);
+		row.appendChild(YfCell);
 		tableBody.appendChild(row);
 	});
 };

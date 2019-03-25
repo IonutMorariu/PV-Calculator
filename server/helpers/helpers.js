@@ -165,12 +165,13 @@ exports.calculateValues = (data) => {
 			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2);
 			const Dtilt = DcTilt + DiTilt;
 			const Gtilt = Btilt + Dtilt;
-			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, DcTilt, DiTilt, Gtilt };
+			elem.hourlyValues[i] = { ...elem.hourlyValues[i], Btilt, Dtilt, DcTilt, DiTilt, Gtilt, cosZenit: Math.cos(zenitRad) };
 		}
 	});
-	newData.applyDirtLevel = true;
 
-	if (newData.applyDirtLevel === true) {
+	newData.isDirtApplied = newData.applyDirtLevel == 'true';
+
+	if (newData.applyDirtLevel == 'true') {
 		newData.meanValues.forEach((elem, index) => {
 			for (let i = 0; i < 24; i++) {
 				const tiltRad = deg2rad(elem.tilt[i]);
