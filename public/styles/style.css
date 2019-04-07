@@ -1,0 +1,31 @@
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	font-size: 12pt;
+}
+
+.container {
+	padding-top: 30px;
+	width: 80%;
+	margin: 0 auto;
+}
+
+.contenedor-informacion {
+	margin: 0px 80px;
+}
+.tabla-informacion {
+	margin: 0 auto;
+}
+
+.test-data {
+	border: 1px solid #efefef;
+	margin-bottom: 30px;
+}
+.test-data td {
+	padding: 5px 10px;
+}
+
+.data-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-gap: 10px;
+}
