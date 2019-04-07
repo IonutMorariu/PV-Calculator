@@ -35,5 +35,13 @@ test_data
 #API keys
 apiKeys.js
 
+#Extensions related to the Thesis
+*.aux
+*.log
+*.out
+*.pdf
+*.synctex.gz
+*.toc
+
 #env variables
 variables.env
