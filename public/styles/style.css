@@ -23,3 +23,9 @@ body {
 .test-data td {
 	padding: 5px 10px;
 }
+
+.data-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-gap: 10px;
+}

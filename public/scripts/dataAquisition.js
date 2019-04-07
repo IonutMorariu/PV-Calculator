@@ -20,16 +20,18 @@ coordBtn.addEventListener('click', getCalcData);
 
 const moduleData = {
 	Gstar: 1000,
-	VocStar: 57.6,
-	IscStar: 4.7,
-	VmppStar: 46.08,
-	ImppStar: 4.35,
-	Ncs: 96,
-	Ncp: 1,
-	TONC: 47,
+	VocStar: 46.4,
+	IscStar: 9.05,
+	VmppStar: 37.4,
+	ImppStar: 8.56,
+	Ncs: 12,
+	Ncp: 6,
+	TONC: 45,
 	Tc: 25,
 	Vt: 0.025,
-	m: 1.3
+	m: 1.3,
+	moduleArea: 1.957 * 0.992,
+	nominalPower: 320
 };
 
 const generatordata = {
@@ -41,13 +43,15 @@ const inverterData = {
 	k0: 0.01,
 	k1: 0.025,
 	k2: 0.05,
-	power: 25000,
+	power: 40000,
 	vMin: 420,
 	vMax: 750
 };
 
 async function getCalcData() {
-	tableBody.innerHTML = 'Loading...';
+	coordBtn.textContent = 'Calculando';
+	coordBtn.disabled = true;
+	coordBtn.classList.add('is-loading');
 
 	calcData.placement = await getCoordinates();
 
@@ -56,7 +60,7 @@ async function getCalcData() {
 		slope: slope.value,
 		orientation: orientation.value,
 		dirtLevel: dirtLevel.value,
-		applyDirt: applyDirt.checked // true
+		applyDirt: true
 	};
 	const radiationData = await doCalculations(calcData);
 	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
@@ -71,10 +75,13 @@ async function getCalcData() {
 	const PacProfile = calculatePacProfile(PoProfile);
 	const MonthlyEac = calculateMonthlyEac(PacProfile);
 	const MonthlyEdc = calculateMonthlyEdc(PdcProfile);
-	const Yf = MonthlyEac.map((val) => val / (moduleData.VmppStar * moduleData.ImppStar * 12 * 11));
+	const monthlyYf = MonthlyEac.map(
+		(val) => val / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules)
+	);
 	const MonthlyEnergykWh = MonthlyEac.map((val) => val / 1000);
 	const AnualEnergyW = calculateAnualEnergy(MonthlyEac);
 	const AnualEnergykWh = AnualEnergyW / 1000;
+	const anualYf = AnualEnergyW / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules);
 
 	// createTable(radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody);
 
@@ -89,6 +96,21 @@ async function getCalcData() {
 		IscProfile,
 		variableFF: { RsStar, rs, koc, DM0, DM, impp, vmpp }
 	});
+
+	saveData(
+		radiationData,
+		MonthlyEnergykWh,
+		AnualEnergykWh,
+		monthlyYf,
+		PacProfile,
+		anualYf,
+		calcData.placement,
+		calcData.surfaceInfo.area,
+		calcData.surfaceInfo.slope,
+		calcData.surfaceInfo.orientation
+	);
+
+	window.location = 'results.html';
 }
 
 const getCoordinates = async () => {
@@ -98,7 +120,9 @@ const getCoordinates = async () => {
 	const requestURL = `${googleEndpoint}address=${address},${city},${postal},spain&key=${googleApiKey}`;
 	const response = await fetch(requestURL);
 	const data = await response.json();
+	console.log(data);
 	const info = {
+		formattedAdress: data.results[0].formatted_address,
 		lat: data.results[0].geometry.location.lat,
 		long: data.results[0].geometry.location.lng
 	};
@@ -339,4 +363,35 @@ const createTable = (radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody) => {
 		row.appendChild(YfCell);
 		tableBody.appendChild(row);
 	});
+};
+
+const saveData = (radiationData, MonthlyEnergykWh, AnualEnergykWh, monthlyYf, PacProfile, AnualYf, location, area, slope, orientation) => {
+	const totalModules = generatordata.seriesModules * generatordata.parallelModules;
+	const totalArea = moduleData.moduleArea * totalModules;
+	const areaRelation = area / totalArea;
+	const installedModules = parseInt(areaRelation * totalModules);
+	const installedPower = installedModules * moduleData.nominalPower;
+	const inverterPower = installedPower * 0.9;
+
+	const results = {
+		placementData: {
+			area,
+			location,
+			slope,
+			orientation
+		},
+		calculationsData: {
+			installedPower,
+			installedModules,
+			inverterPower,
+			AnualEnergykWh,
+			MonthlyEnergykWh,
+			monthlyYf,
+			AnualYf,
+			PacProfile,
+			areaRelation
+		},
+		radiationData
+	};
+	localStorage.setItem('results', JSON.stringify(results));
 };
