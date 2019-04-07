@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsfonts,amsmath,amssymb}
+\usepackage[none]{hyphenat}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage[nottoc, notlot, notlof]{tocbibind}
+\usepackage[spanish]{babel}
+\usepackage{hyperref}
+\usepackage{eurosym}
+
+\pagestyle {fancy}
+\fancyhead{}
+\fancyfoot{}
+\fancyhead[L]{\slshape\MakeUppercase{Trabajo de fin de grado}}
+\fancyhead[R]{\slshape Ionut Morariu}
+\fancyfoot[C]{\thepage}
+
+\parindent 0ex
+%\setlength{\parindent}{4em} %Change indent width
+%\setlength{\parskip}{1em} %space between paragraphs
+
+
+
+
+
+
+\begin{document}
+
+\begin{titlepage}
+
+
+
+\begin{center}
+	\includegraphics[scale=1]{cabecera}\\
+	\vspace*{1cm}
+	\Large{\textbf{\MakeUppercase{Universidad Pólitécnica de Madrid}}}\\[3mm]
+	\Large{{\MakeUppercase{Escuela técnica de ingeniería y diseño industrial}}}\\[3mm]
+	\Large {Grado en Ingeneriería Eléctrica}\\
+	\vfill
+	\line(1,0){400}\\
+	\Large{{\MakeUppercase{Trabajo de fin de grado}}}\\
+	\Huge{\textbf{Aplicación web para la estimación del coste de una instalación solar doméstica}}\\[5mm]
+	\Large{Autor: Ionut Cristian Morariu}\\
+	\line(1,0){400}\\
+	\vfill
+\end{center}
+\begin{flushright}
+\Large {Tutor: Óscar Perpiñan Lamingueiro}\\[3mm]
+\Large{Departamento de Ingeniería Eléctrica,\\ Electrónica, Automática y Física aplicada}\\[10mm]
+Madrid, \today
+\end{flushright}
+
+\end{titlepage}
+
+\renewcommand{\baselinestretch}{1.5} %line spacing
+\renewcommand{\labelitemi}{\textbullet}
+
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+
+\setcounter{page}{1}
+
+
+\section{Objetivos}
+
+El objetivo de este proyecto es el desarrollo de una aplicación web de fácil acceso para la estimación del coste de una instalación fotovoltaica doméstica.\\
+
+El usuario introducirá unos datos determinados de su emplazamiento y la aplicación hará los cálculos necesarios para ofrecer una aproximación lo más concreta posible del coste que conllevaría dicha instalación.\\
+
+La aplicación también ofrecerá otros datos de posible interés para el usuario como: el número de paneles que se pueden instalar, la potencia de dichos paneles y la potencia del inversor. El software indicará una lista de los fabricantes más relevantes y/o compatibles sin tener ningún tipo de compromiso con ninguno de ellos.\\
+
+La idea de esta aplicación surge de una conversación que tuve con un conocido cuando estaba planificando la construcción de su nueva vivienda, en la cual quería realizar una instalación fotovoltaica para reducir el gasto en la factura de electricidad.\\
+
+En su búsqueda no encontró ningun servicio que le ofreciera la posibilidad de introducir los datos de su vivienda como:las coordenadas del emplazamiento y la orientación, inclinación y superficie del tejado donde pretendía realizar dicha instalación.\\
+
+
+Los objetivos detallados de esta aplicación son los siguientes:
+\begin{itemize}
+\item Diseñar una interfaz de usuario amigable y sencilla de usar para que la pueda utilizar un gran número de personas sin necesidad de conocimientos sobre energía fotovoltaica.
+
+\item Obtención de los datos de radiación en el emplazamiento indicado por el usuario mediante el uso de API\footnote{\textit{Application Programming Interface}: conjunto de funciones y procedimientos que ofrece la posibilidad de un software a interaccionar con otro.} externas.
+\item Realizar todos los cálculos necesarios para ofrecer una estimación competente de los siguientes datos:
+\begin{itemize}
+
+\item Potencia máxima a instalar.
+\item Potencia del inversor.
+\item Energía eléctrica producida en un año.
+\item Ahorro económico en función del coste de la energía.
+\item Número de paneles que se pueden instalar.
+\item Potencia de los paneles.
+
+\end{itemize}
+\end{itemize}
+\newpage
+
+\section{Estado del arte}
+
+\subsection{Situación actual del mercado}
+\subsection{Soluciones existentes y sus carencias}
+
+
+\section{Parte teórica}
+
+\section{Desarrollo}
+
+\section{Resultado}
+
+\section{Conclusión}
+
+
+\pagebreak
+
+\begin{thebibliography}{99}
+ 
+\end{thebibliography}
+
+\end{document}
