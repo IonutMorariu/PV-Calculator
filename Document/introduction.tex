@@ -1,0 +1,84 @@
+\section{Objetivos}
+El objetivo de este proyecto es el desarrollo de una aplicación o página web de fácil acceso para todos los usuarios, con la finalidad de ofrecer una estimación inicial del coste y la posible generación de una instalación fotovoltaica doméstica de conexión a red.\\
+
+Para poder llevar a cabo esta estimación, el usuario introducirá unos serie de datos acerca de su emplazamiento y edificación en la que desea situar la instalación, y la aplicación hará todos los cálculos necesarios para ofrecer una aproximación lo más cercana al resultado final teniendo en cuenta todas la variables que puedan intervenir.\\
+
+La aplicación también ofrecerá otros datos de posible interés para el usuario como: el número de paneles que se pueden instalar, la potencia de dichos paneles y la potencia del inversor.\\
+
+La idea de esta aplicación surge de una conversación que tuve con un conocido cuando estaba planificando la construcción de su nueva vivienda, en la cual quería realizar una instalación fotovoltaica para reducir el gasto en la factura de electricidad.\\
+
+En su búsqueda no encontró ningún servicio que fuera lo suficientemente sencillo de entender para una persona sin ningún tipo de conocimiento previo acerca de la generación fotovoltaica, que le aportase la posibilidad de poder personalizar los cálculos a su emplazamiento y planos de construcción.\\
+
+Otro de los puntos clave de la aplicación es que sea de código abierto y gratuita para los usuarios, usando fuentes de información disponibles para cualquier interesado. Todos los pasos y operaciones se podrán obtener, analizar y reutilizar de manera gratuita desde un repositorio de Github \footnote{\textit{Github.com:} Plataforma online de almacenamiento de código y documentación de fuentes abiertas.}.\\
+
+
+Los objetivos detallados de esta aplicación son los siguientes:
+\begin{itemize}
+\item Diseñar una interfaz de usuario amigable y sencilla de usar para que la pueda utilizar un gran número de personas sin necesidad de conocimientos sobre energía fotovoltaica.
+
+\item Obtención de los datos de irradiación en el emplazamiento indicado por el usuario mediante el uso de API\footnote{\textit{Application Programming Interface}: conjunto de funciones y procedimientos que ofrece la posibilidad de un software a interaccionar con otro.} externas.
+\item Realizar todos los cálculos necesarios para ofrecer una estimación competente de los siguientes datos:
+
+\begin{itemize}
+
+\item Número de paneles que se pueden instalar.
+\item Potencia máxima a instalar.
+\item Potencia del inversor.
+\item Energía eléctrica producida en un año.
+
+\end{itemize}
+\end{itemize}
+
+\section{Análisis previo de soluciones}\label{intro_solutions}
+
+Antes de comenzar el desarrollo del proyecto, dediqué un tiempo a estudiar las soluciones existentes de estimaciones de instalaciones fotovoltaicas existentes en el mercado para decidir si tenía cabida una aplicación como la que se iba a desarrollar.\\
+
+Algunas de las soluciones encontradas fueron:
+
+\begin{enumerate}
+\item \textbf{PVSyst - Photovoltaic Software}
+
+El software PVSyst, desarrollado por la empresa suiza con el mismo nombre es quizá el más conocido dentro del ámbito del estudio y la estimación de instalaciones fotovoltaicas. Ofrece una amplia capacidad de personalización de todos los componentes de la instalación.
+
+\item \textbf{CalculationSolar.com}
+
+Es el primer resultado de Google al buscar el término \textit{``calculadora de instalaciones fotovoltaicas''}, por tanto será una de las primeras aplicaciones que una persona que desea realizar una instalación en su vivienda visite.
+
+\item \textbf{SISIFO}
+
+Es una herramienta web diseñada y desarrollada por el Instituto de Energía Solar de la Universidad Politécnica de Madrid. Ha sido y es la herramienta interna utilizada por los ingenieros de dicho instituto.
+
+\end{enumerate}
+
+En el apartado \ref{existing_solutions}  se lleva a cabo un desarrollo mas detallado de las características de las soluciones mencionadas así como sus diferencias con la propuesta de este proyecto.\\
+\newpage
+
+\section{Aspectos técnicos}
+
+Para construir cualquier página web se deben desarrollar dos sistemas diferentes llamados Backend y Frontend.
+El Backend es el la parte de cálculo y tratamiento de peticiones, comúnmente llamado server o servidor. Por otro lado se encuentra el Frontend que es la parte de cara al usuario, la que se encarga de recoger los datos introducidos por este y enviarlos al servidor.
+
+\subsection{Backend}
+
+Para el Backend se ha empleado una tecnología basada en Javascript llamada NodeJS \footnote{\textit{NodeJS:} Entorno de ejecución basado en el motor de Chrome llamado V8. \url{https://nodejs.org/en/} }, con la ayuda de las librerias ExpressJS\footnote{\textit{ExpressJS:} Framework web para el entorno de NodeJS. \url{https://expressjs.com/es/}} y Mongoose \footnote{\textit{Mongoose:} Capa intermedia de interacción para las BBDD MongoDB \url{https://mongoosejs.com/}}.   \\
+La base de datos que se ha utilizado para almacenar los datos necesarios ha sido MongoDB.
+
+En el servidor se realizan varias tareas relacionadas con los cálculos necesarios. Algunas de estas tareas son:
+\begin{itemize}
+\item Obtención de los datos de irradiación global media en el plano horizontal para el emplazamiento indicado
+\item Proceso completo de cálculo para pasar de la irradiación en el plano horizontal al plano inclinado y orientado según los datos introducidos por el usuario
+\item Proceso de obtención de los datos relacionados con el perfil horario de temperatura en el emplazamiento indicado
+\item Gestión de las diferentes rutas que constituyen la API.
+\end{itemize}
+
+\subsection{Frontend}
+ Para el Frontend de la página se han utilizado las tres tecnologías necesarias para poder desarrollar una pagina web: HTML5, CSS3, Javascript.\\
+ 
+
+Esta parte de la página es la encargada de recoger los datos del usuario  y enviarlos al servidor para que se realicen los cálculos. Una vez realizados dichos cálculos, la página mostrará la información relevante al usuario, junto con algunos unos gráficos adicionales.\\
+
+Tanto el backend como el frontend están almacenados en un servidor de Linux remoto activo 24/7.\\
+
+Todas las tareas mencionadas tanto en la parte de Backend como en la parte de Frontend se describirán en detalle en la sección \ref{sec:theory}, junto con todos los cálculos en los que se ha basado. 
+
+\newpage
