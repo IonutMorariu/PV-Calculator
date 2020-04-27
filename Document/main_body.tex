@@ -1,10 +1,10 @@
 
 El proceso de cálculo que se va a seguir para la estimación completa de la instalación fotovoltaica conectada a red es el que se detalla en el libro de Óscar Perpiñán, tutor de este trabajo, denominado Energía Solar Fotovoltaica \cite{esf_book}. También se harán menciones a las presentaciones que se encuentran en el mismo enlace que el libro.\\
 
-A lo largo de este capítulo, se utilizará el término \textbf{aplicación} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
+A lo largo de este capítulo, se utilizará el término \textbf{SolarCalc} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
 
 \section{Obtención de datos del usuario}
-Como he mencionado anteriormente, el objetivo principal de la aplicación es de realizar todos los cálculos que se necesitan para estimar una instalación fotovoltaica conectada a red, de la manera mas exacta posible,  en un emplazamiento concreto elegido por el usuario. Por tanto, el primer paso que tuve que dar con la aplicación fue la de obtener todos los datos necesarios para realizar dichos calculos.
+Como se ha mencionado anteriormente, el objetivo principal de la aplicación es de realizar todos los cálculos que se necesitan para estimar una instalación fotovoltaica conectada a red, de la manera mas exacta posible,  en un emplazamiento concreto elegido por el usuario. Por tanto, el primer paso que tuve que dar con la aplicación fue la de obtener todos los datos necesarios para realizar dichos cálculos.
 Estos datos son:
 \begin{itemize}
 \item Emplazamiento del usuario
@@ -116,3 +116,49 @@ $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 &
 \label{tab:dias_promedio}
 \caption{Dias promedio}
 \end{table}
+Para el cálculo de la irradiancia solar que finalmente incide en una superficie localizada en la corteza terrestre será útil distinguir tres componentes diferenciados, comúnmente denominados:
+
+\begin{itemize}
+\item Radiación Directa, \textit{B}: representa la fracción procedente en linea directa del Sol.
+\item Radiación Difusa, \textit{D}: representa toda la radiación procedente de todo el cielo, excepto del sol, y por tanto incluye todos los rayos dispersados por la atmósfera. Es una radiación que depende del estado de la atmósfera, y variará en función de las condiciones climatológicas.
+\item Radiación del albedo, \textit{R}: es aquella fracción de la radiación procedente de la reflexión con el suelo. Habitualmente, supone una contribución muy pequeña, que en algunos casos, como el de este proyecto, puede ser despreciada.
+\end{itemize}
+
+La suma de las tres componentes constituyen la denominada irradiancia global:
+\begin{equation}
+G=B+D+R
+\end{equation}
+\label{equation:eqn_global_radiation}
+\subsubsection{Nomeclatura}
+
+Es importante distinguir, dentro de las ecuaciones que modelan el comportamiento de la radiación solar, la forma de indicar cada componente de la irradiancia, el instante o el período en el que se recibe. 
+
+Es recomendable leer estas expresiones en el orden período, forma, tiempo y lugar utilizando el formato de nomenclatura de la siguiente ecuación
+\begin{equation}
+	Forma_{tiempo, promedio}(lugar)
+\end{equation}
+
+Para expresar el lugar de incidencia caben las siguiente posibilidades:
+\begin{itemize}
+\item (Orientación, Inclinación) : ($\beta , \alpha$)
+\item (Horizontal) : (0)
+\item (Superficie perpendicular al vector solar): ($n$)
+\item (En el plano del generador): ($I$)
+\end{itemize}
+
+Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria(tiempo) en el plano horizontal(lugar), mientras que $G_{d,m}(I)$ se lee media mensual(período) de la irradiación global(forma) diaria (tiempo) en el plano generador (lugar).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

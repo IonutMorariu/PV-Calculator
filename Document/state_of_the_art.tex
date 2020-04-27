@@ -30,13 +30,13 @@ Surge por tanto la necesidad de aplicaciones y soluciones para la estimación de
 
 \section{Soluciones existentes y sus carencias} \label{existing_solutions}
 
-Como ya se ha mencionado en el el apartado \ref{intro_solutions}  existen multitud soluciones para la estimación o simulación de instalaciones fotovoltaicas. Sin embargo, considero que la aplicación descrita en este proyecto sigue teniendo cabida porque ofrece ciertas funciones que, a mi parecer, no existen en las soluciones que se han estudiado.
+Como ya se ha mencionado en el el apartado \ref{intro_solutions}  existen multitud soluciones para la estimación o simulación de instalaciones fotovoltaicas. Sin embargo, es posible que la aplicación descrita en este proyecto siga teniendo cabida porque ofrece ciertas funciones que, en cierta medida, no existen en las soluciones que se han estudiado.
 
 A continuación se describirán con detalle las soluciones mencionadas anteriormente, junto con sus capacidades y carencias.
 \pagebreak
 
 \begin{enumerate}
-\item \textbf{PVSyst - Photovoltaic Software}
+\item \textbf{PVSyst - Photovoltaic Software} \cite{sota_pvsyst}
 
 El software PVSyst, desarrollado por la empresa suiza con el mismo nombre es quizá el más conocido dentro del ámbito del estudio y la estimación de instalaciones fotovoltaicas. Ofrece una amplia capacidad de personalización de todos los componentes de la instalación.
 
@@ -49,7 +49,8 @@ PVSyst se diferencia de la aplicación que se desarrolla en este proyecto en alg
 		\item Es poco intuitivo para un usuario con bajos conocimientos de instalaciones fotovoltaicas.
 	\end{itemize}
 En resumen, PVSyst es un software mucho mas completo y complejo que la solución que yo propongo, y que va enfocada a un público con una base sólida sobre energía fotovoltaica.
-\item \textbf{CalculationSolar.com}
+
+\item \textbf{CalculationSolar.com} \cite{sota_calculationsolar}
 
 Como ya se ha mencionado en la introducción, CalculationSolar.com es el primer resultado que aparece en el motor de búsqueda de Google cuando se introduce el término \textit{``calculadora de instalaciones fotovoltaicas''} y por tanto será una de las primeras opciones que un usuario que está interesado en realizar una instalación fotovoltaica considere.
 
@@ -62,13 +63,40 @@ Una vez introducidos estos datos, el programa realiza los cálculos y nos ofrece
 
 La principal diferencia con la aplicación que yo he desarrollado es requisitos versus limitaciones. Es decir, CalculationSolar.com te permite seleccionar tus requisitos de potencia y te indica el generador que vas a necesita para poder hacer frente a dicha carga. En cambio, mi solución indica la potencia y energía que se puede llegar a generar con las limitaciones arquitectónicas impuestas por el usuario. 
 
-\item \textbf{SISIFO}
+\item \textbf{SISIFO} \cite{sota_sisifo}
 
-La solución propuesta por el Instituto de Energía Solar de la Universidad Politécnica de Madrid es también un solución web para el calculo de instalaciones solares tanto de bombeo de agua como conectadas a red.
+La solución propuesta por el Grupo de Energías Fotovoltaicas del Instituto de Energía Solar de la Universidad Politécnica de Madrid es también un solución web para el calculo de instalaciones solares tanto de bombeo de agua como conectadas a red.
 
 El sistema de input de información del usuario es muy completo. Paso por paso le permite a éste introducir desde los datos geográficos y meteorológicos hasta hasta los valores de perdidas en los diferentes cableados del sistema. No obstante, los valores por defecto son muy válidos así que incluso un usuario con poco conocimiento sobre energía podría llegar a obtener unos resultados fiables.
 
 Una vez realizada la simulación, la aplicación aporta multitud de resultados detallados tales como Irradiaciones en el plano horizontal e inclinado, temperaturas y energía producida.
 
-Esta aplicación es la más parecida, salvando las distancias, a la que se desarrolla en este proyecto. Sin embargo, considero que puede llegar a abrumar un poco a un usuario que desea solamente conocer cual es la potencia o energía que puede llegar a producir en su casa, para saber si le va a ser rentable la inversión.
+Esta aplicación es la más parecida, salvando las distancias, a la que se desarrolla en este proyecto. Sin embargo, es posible que puede llegar a abrumar en cierta medida a un usuario que desea solamente conocer cual es la potencia o energía que puede llegar a producir en su casa, para saber si le va a resultar rentable la inversión.
+
+\item \textbf{PVGIS} \cite{sota_pvgis}
+
+PVGIS es la solución desarrollada por el JRC (Centro de Investigación Conjunta), que forma parte del EU Science Hub. Consiste en una aplicación web que nos permite estimar la energía que puede llegar a producir una instalación fotovoltaica en función de los parametros introducidos por el usuario.
+
+Tras elegir la localización como primer paso, el programa nos abre la posibilidad de elegir el tipo de instalación, entre conectada a red, con seguimiento, o autónomo.
+
+En este caso, para poder compararlo con la aplicación de este proyecto, se va a realizar la estimación de un sistema conectado a red. La principal diferencia se presenta cuando el programa solicita al usuario la potencia FV pico instalada, así como la tecnología y las perdidas porcentuales del sistema.
+
+Una vez introducidos estos datos, la aplicación nos ofrece los resultados de producción de energía mensual del sistema.
+
+A diferencia de esto, SolarCalc, solicita al usuario el dato de la superficie disponible, para estimar la potencia máxima y por consiguiente, la energía máxima.
+
+\item \textbf{System Advisor Model} \cite{sota_sam}
+
+Esta aplicación desarrollada por el Laboratorio de Energías Renovables del Departamento de Energía de los Estados Unidos. Es un conjunto de soluciones enfocadas a facilitar la toma de decisiones relacionadas con el campo de las Energías Renovables. Entre sus funcionalidades se incluyes programas de cálculo de Fotovoltaica, Termosolar, Eólica, Geotermal o Biomasa.
+
+Es una herramienta muy completa a la vez que compleja, con un enfoque centrado en el apartado económico y la rentabilidad. En cuanto al cálculo y la estimación de una instalación fotovoltaica, ofrece una amplia posibilidad de personalización de cada uno de los campos que afecta a dicho cálculo. Cada uno de los parámetros de la radiación, el módulo, el inversor, las sombras e incluso de la inversión y amortización de la instalación son totalmente ajustables.
+
+Con ésta aplicación sucede como con alguna de las mencionadas anteriormente, que puede llevar a confusión a un usuario medio sin conocimiento relacionados con la fotovoltaica. Estos usuarios son el público objetivo de la aplicación de SolarCalc, desarrollada en este proyecto.
+
+\item \textbf{solaR} \cite{sota_solaR}
+
+Este paquete para R, desarrollado por Oscar Perpiñán, permite llevar a cabo estudios tanto del rendimiento de los sistemas fotovoltaicos como de la radiación solar. Incluye una serie de clases, métodos y funciones para calcular aspectos como la geometría solar, radiación solar incidente sobre un generador, realizar el paso de un generador horizontal a un generador inclinado y orientado y simular el rendimiento de diferentes aplicaciones de la energía fotovoltaica.
+
+A pesar de no ser una aplicación de estimación de instalaciones solares como tal, has sido, junto con el libro \cite{esf_book}, la base de contraste y referencia de los cálculos que se han sido necesario llevar a cabo para poder desarrollar la aplicación de SolarCalc.
+
 \end{enumerate}

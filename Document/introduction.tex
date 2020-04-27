@@ -1,6 +1,8 @@
 \section{Objetivos}
 El objetivo de este proyecto es el desarrollo de una aplicación o página web de fácil acceso para todos los usuarios, con la finalidad de ofrecer una estimación inicial del coste y la posible generación de una instalación fotovoltaica doméstica de conexión a red.\\
 
+Durante el resto del documento, si fuera necesario, se hará referencia a la aplicación desarrollada en este proyecto en el nombre de SolarCalc.\\
+
 Para poder llevar a cabo esta estimación, el usuario introducirá unos serie de datos acerca de su emplazamiento y edificación en la que desea situar la instalación, y la aplicación hará todos los cálculos necesarios para ofrecer una aproximación lo más cercana al resultado final teniendo en cuenta todas la variables que puedan intervenir.\\
 
 La aplicación también ofrecerá otros datos de posible interés para el usuario como: el número de paneles que se pueden instalar, la potencia de dichos paneles y la potencia del inversor.\\
@@ -31,7 +33,7 @@ Los objetivos detallados de esta aplicación son los siguientes:
 
 \section{Análisis previo de soluciones}\label{intro_solutions}
 
-Antes de comenzar el desarrollo del proyecto, dediqué un tiempo a estudiar las soluciones existentes de estimaciones de instalaciones fotovoltaicas existentes en el mercado para decidir si tenía cabida una aplicación como la que se iba a desarrollar.\\
+Antes de comenzar el desarrollo del proyecto, se llevó a cabo una revisión de las soluciones existentes de estimaciones de instalaciones fotovoltaicas existentes en el mercado para decidir si tenía cabida una aplicación como la que se iba a desarrollar.\\
 
 Algunas de las soluciones encontradas fueron:
 
@@ -48,6 +50,17 @@ Es el primer resultado de Google al buscar el término \textit{``calculadora de 
 
 Es una herramienta web diseñada y desarrollada por el Grupo de Sistemas Fotovoltaicos del Instituto de Energía Solar de la Universidad Politécnica de Madrid. Ha sido y es la herramienta interna utilizada por los ingenieros de dicho grupo.
 
+\item \textbf{PVGIS}
+
+Aplicación web desarrollada por el \textbf{European Commission Joint Research Center} desde 2001. Su enfoque es asistir en el calculo y estimación de instalaciones fotovoltaicas, ya sean conectadas a red, de seguimiento o de autoconsumo.
+
+\item \textbf{System Advisor Model}
+
+System Advisor Model (SAM), desarrollado por el Laboratorio Nacional de Energías Renovables, perteneciente al Departamento de Energía del gobierno americano, es una software técnico-económico gratuito que ayuda a la toma de decisiones en el amplio campo de las energías renovables. Ofrece un conjunto de soluciones muy completas no solamente relacionadas con la energía fotovoltaica, sino también termosolar, eólica, geotermal o biomasa, entre otras.
+
+\item \textbf{solaR}
+
+solaR es un paquete de código para el entorno de R, desarrollado por Oscar Perpiñán, que a pesar de tener objetivos diferentes a los planteados por la aplicación desarrollada en este proyecto, ha servido como base para validar todos los cálculos que se han realizado en ella.
 \end{enumerate}
 
 En el apartado \ref{existing_solutions}  se lleva a cabo un desarrollo mas detallado de las características de las soluciones mencionadas así como sus diferencias con la propuesta de este proyecto.\\
