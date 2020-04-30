@@ -1,7 +1,7 @@
 
 El proceso de cálculo que se va a seguir para la estimación completa de la instalación fotovoltaica conectada a red es el que se detalla en el libro de Óscar Perpiñán, tutor de este trabajo, denominado Energía Solar Fotovoltaica \cite{esf_book}. También se harán menciones a las presentaciones que se encuentran en el mismo enlace que el libro.\\
 
-A lo largo de este capítulo, se utilizará el término \textbf{SolarCalc} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
+A lo largo de este capítulo, se utilizará el término \textbf{aplicación} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
 
 \section{Obtención de datos del usuario}
 Como se ha mencionado anteriormente, el objetivo principal de la aplicación es de realizar todos los cálculos que se necesitan para estimar una instalación fotovoltaica conectada a red, de la manera mas exacta posible,  en un emplazamiento concreto elegido por el usuario. Por tanto, el primer paso que tuve que dar con la aplicación fue la de obtener todos los datos necesarios para realizar dichos cálculos.
@@ -72,37 +72,23 @@ Con el objetivo de no saturar la pagina de ADRASE y evitar error de funcionamien
 Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
 \newpage
 
-\section{Cálculo de las componentes de la irradiación solar}
+\section{Naturaleza de la radiación solar}
 
-Partiendo de los datos obtenidos en la sección anterior debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
+\subsection{Radiación fuera de la atmósfera terrestre}
+La radiación emitida por el Sol atraviesa el espacio vacío en todas las dirección sin sufrir pérdidas a causa de la interacción con los medios material. Sin embargo, la irradiancia solar, que se define como la densidad de flujo radiante solar, se ve atenuada por el cuadrado de la distancia. Parte de esta irradiancia es interceptada por la Tierra. Dada la relación entre la distancia con el Sol y el tamaño de nuestro planeta, se puede asumir que su valor es constante en toda la superficie exterior de la atmósfera. El valor promedio de esta irradiancia, según varias campañas de medición es de $B_{0} = 1367 \frac{W}{m^2}$.
 
-Un esquema resumido del proceso se indica a continuación:
+Para calcular la irradiancia incidente en una superficie tangente a la atmosfera en una latitud, debemos tener en cuenta que la distancia entre la Tierra y el Sol varía a lo largo del año, debido a la excentricidad de la órbita elíptica que describe nuestro planeta. La ecuación para calcular dicho valor es:\\
+\begin{equation}\label{eqn_B00}
+B_0(0) = B_0\epsilon_0\cos\theta_{zs}
+\end{equation}\\
 
-\begin{figure}[ht]
-\includegraphics[scale=0.7]{32_ESFBOOK_1}
-\centering
-\caption{Procedimiendo de cálculo (Figura 3.3 pág 31 \cite{esf_book})}
-\label{fig:fig_1}
-\end{figure}
 
-En la figura \ref{fig:fig_1} se muestra el proceso de cálculo que se va a seguir para llegar a los valores necesarios para poder estimar la potencia y energía de la instalación.
+Es importante resaltar que el valor de la irradiancia extra-atmosférica o extra-terrestre solo requiere consideraciones atmosféricas. Así, integrando la ecuación \ref{eqn_B00}, podemos calcular la irradiación diaria extra-terrestre con la ecuación obtenida:\\
+\begin{equation}\label{eqn_B0d0}
+B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\cos\delta\sin\omega_s)
+\end{equation}\\
 
-Los pasos descritos son:
-\begin{enumerate}
-	\item Separar la irradiación global diaria en el plano horizontal en sus componentes de irradiación difusa y directa.
-	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
-	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
-	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
-	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
-\end{enumerate}
-
-\subsection{Separación de la irradiación global diaria en sus componentes}
-
-Como se ha indicado anteriormente, el primer paso del proceso de cálculo es el de separar la irradiación global diaria en en plano horizontal en sus dos componentes, la directa y la difusa.
-
-Al tener solamente un valor de irradiación por cada uno de los meses, utilizaremos el día promedio de cada mes, ya que es posible demostrar que el promedio mensual coincide con el valor diario correspondiente al denominado día promedio.\\
-
-\pagebreak
+Es posible demostrar que el promedio mensual de esta irradiación diaria coincide numéricamente con el valor de irradiación diaria correspondiente a los denominados días promedios, días en los que la declinación correspondiente coincide con el promedio mensual. Por tanto, podemos calcular el valor medio mensual de la irradiación diaria extra-atmosférica con el valor de la declinación de uno de los doce días promedio.
 
 Estos doce días promedios son:
 
@@ -116,6 +102,53 @@ $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 &
 \label{tab:dias_promedio}
 \caption{Dias promedio}
 \end{table}
+
+Para calcular esta irradiación diaria, debemos calcular primero los diferentes componentes que forman parte de esta:
+\begin{itemize}
+\item $B_{0} = 1367 \frac{W}{m^2}$
+\item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 · \cos(\frac{2\pid_n}{365})$
+
+En código se representa de la siguiente manera:
+\begin{lstlisting}[style=ES6, caption={Factor de corrección por excentricidad}]
+		const exct = 1 + 0.033 * Math.cos((2 * Math.PI * elem.normalDay) / 365)
+\end{lstlisting}
+\item Ecuación de Cooper para la declinación: $\delta = 23,45\deg · \sin(\frac{2\pi·(d_n+284)}{365})$
+
+En código se representa de la siguiente manera:
+\begin{lstlisting}[style=ES6, caption={Ecuación de Cooper para declinación}]
+		const decl = 23.45 * Math.sin((2 * Math.PI * (elem.normalDay + 284)) / 365)
+\end{lstlisting}
+\item Cenit Solar: $\cos(\theta_{zs}) = \cos(\delta)\cos(\omega)\cos(\phi) + \sin(\delta)sin(\phi)$\\
+
+Para el calculo del cenit solar, hay que tener en cuenta que varía en función de la hora del día, así que se deberá calcular un valor para cada una de las 24h del día, con la diferencia de que en el cálculo, las horas irán de -12 a 12 en lugar de 0 a 23 y además, tendremos que convertir las horas a ángulos multiplicando por 15$\deg$. De tal manera, que en código, el calculo del cenit solar, tendrá ésta representación:\\
+\begin{lstlisting}[style=ES6, caption={Cálculo del cenit solar}]
+		for (let h = -12; h < 12; h++) {
+			const cosZenit =
+				Math.cos(deg2rad(elem.decl)) * Math.cos(deg2rad(h * 15)) * 	
+					  Math.cos(deg2rad(newData.latitude)) +
+				Math.sin(deg2rad(elem.decl)) * Math.sin(deg2rad(newData.latitude))
+			const zenitVal = rad2deg(Math.acos(cosZenit))
+		}
+\end{lstlisting}
+\end{itemize}
+
+Aplicando estos cálculos a la ecuación \ref{eqn_B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$ con la siguiente expresión:
+\begin{lstlisting}[style=ES6, caption={Equación para B0d0}]
+		const B0d0 =
+			-(24 / Math.PI) *
+			B0 *
+			elem.exct *
+			(elem.ws * Math.sin(deg2rad(newData.latitude)) * Math.sin(deg2rad(elem.decl)) +
+				Math.cos(deg2rad(elem.decl)) * Math.cos(deg2rad(newData.latitude)) * 
+				Math.sin(elem.ws))
+\end{lstlisting}
+donde:
+\begin{itemize}
+\item B0: valor contante de 1367 $W/m^2$
+\item exct: excentricidad
+\item ws: ángulo amanecer
+\item decl: declinación
+\end{itemize}
 Para el cálculo de la irradiancia solar que finalmente incide en una superficie localizada en la corteza terrestre será útil distinguir tres componentes diferenciados, comúnmente denominados:
 
 \begin{itemize}
@@ -146,7 +179,49 @@ Para expresar el lugar de incidencia caben las siguiente posibilidades:
 \item (En el plano del generador): ($I$)
 \end{itemize}
 
-Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria(tiempo) en el plano horizontal(lugar), mientras que $G_{d,m}(I)$ se lee media mensual(período) de la irradiación global(forma) diaria (tiempo) en el plano generador (lugar).
+Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria (tiempo) en el plano horizontal (lugar), mientras que $G_{d,m}(I)$ se lee media mensual (período) de la irradiación global (forma) diaria (tiempo) en el plano generador (lugar).\\
+
+\section{Cálculo de componentes de radiación solar}
+
+Para poder calcular la energía producida por un generador fotovoltaico, es necesario conocer la radiación solar que incide sobre la superficie de dicho generador. Para poder predecir la energía producida por éste en un tiempo futuro, el problema que se ha de resolver es estimar la irradiancia \footnote{\textbf{Irradiancia}: densidad de potencia de radiación solar incidente en una superficie. Unidades: $\frac{W}{m^2}$} que recibirá, a partir del comportamiento de la radiación solar en ese lugar.
+
+En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice es la relación entre la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
+
+\begin{equation}
+K_{Td} = \frac{G_d(0)}{B_{0d}(0)}
+\end{equation}
+mientras que el indice de claridad mensual es la relación entre las medias mensuales de irradiación diaria:
+\begin{equation}
+K_{Tm} = \frac{G_{d,m}(0)}{B_{0d,m}(0)}
+\end{equation}
+
+Partiendo de los datos obtenidos en la sección anterior debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
+
+Un esquema resumido del proceso se indica a continuación:
+
+\begin{figure}[ht]
+\includegraphics[scale=0.7]{32_ESFBOOK_1}
+\centering
+\caption{Procedimiendo de cálculo (Figura 3.3 pág 31 \cite{esf_book})}
+\label{fig:fig_1}
+\end{figure}
+
+En la figura \ref{fig:fig_1} se muestra el proceso de cálculo que se va a seguir para llegar a los valores necesarios para poder estimar la potencia y energía de la instalación.
+
+Los pasos descritos son:
+\begin{enumerate}
+	\item Separar la irradiación global diaria en el plano horizontal en sus componentes de irradiación difusa y directa.
+	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
+	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
+	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
+	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
+\end{enumerate}
+
+\subsection{Separación de la irradiación global diaria en sus componentes}
+
+Como se ha indicado anteriormente, el primer paso del proceso de cálculo es el de separar la irradiación global diaria en en plano horizontal en sus dos componentes, la directa y la difusa.
+
+
 
 
 
