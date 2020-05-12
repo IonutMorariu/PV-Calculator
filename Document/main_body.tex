@@ -182,8 +182,30 @@ Para expresar el lugar de incidencia caben las siguiente posibilidades:
 Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria (tiempo) en el plano horizontal (lugar), mientras que $G_{d,m}(I)$ se lee media mensual (período) de la irradiación global (forma) diaria (tiempo) en el plano generador (lugar).\\
 
 \section{Cálculo de componentes de radiación solar}
+Partiendo de los datos obtenidos de la página de ADRASE, de radiación media mensual, debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
 
-Para poder calcular la energía producida por un generador fotovoltaico, es necesario conocer la radiación solar que incide sobre la superficie de dicho generador. Para poder predecir la energía producida por éste en un tiempo futuro, el problema que se ha de resolver es estimar la irradiancia \footnote{\textbf{Irradiancia}: densidad de potencia de radiación solar incidente en una superficie. Unidades: $\frac{W}{m^2}$} que recibirá, a partir del comportamiento de la radiación solar en ese lugar.
+Un esquema resumido del proceso se indica a continuación:
+
+\begin{figure}[ht]
+\includegraphics[scale=0.7]{32_ESFBOOK_1}
+\centering
+\caption{Procedimiendo de cálculo (Figura 3.3 pág 31 \cite{esf_book})}
+\label{fig:fig_1}
+\end{figure}
+
+En la figura \ref{fig:fig_1} se muestra el proceso de cálculo que se debe seguir para obtener los valores de radiación efectiva incidente en el plano del generador, que después se utilizarán para calcular la energía que es capaz de entregar este.
+
+
+Los pasos descritos son:
+\begin{enumerate}
+	\item Separar la irradiación global diaria en el plano horizontal en sus componentes de irradiación difusa y directa.
+	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
+	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
+	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
+	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
+\end{enumerate}
+
+Para poder calcular la energía producida por un generador fotovoltaico, es necesario conocer la radiación solar que incide sobre la superficie de dicho generador. Para poder predecir la energía producida por éste en un tiempo futuro, el problema que se ha de resolver es estimar la irradiancia \footnote{\textbf{Irradiancia}: densidad de potencia de radiación solar incidente en una superficie. Unidades: $\frac{W}{m^2}$} que recibirá, a partir del comportamiento de la radiación solar en ese lugar.\\
 
 En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice es la relación entre la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
 
@@ -195,45 +217,117 @@ mientras que el indice de claridad mensual es la relación entre las medias mens
 K_{Tm} = \frac{G_{d,m}(0)}{B_{0d,m}(0)}
 \end{equation}
 
-Partiendo de los datos obtenidos en la sección anterior debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
+En el código, el índice de claridad media se calcula con la siguiente expresión:
+\begin{lstlisting}[style=ES6, caption={Índice de claridad diario}]
+	newData.meanValues.forEach((elem, index) => {
+		const Ktd = elem.meanGR / elem.B0d0
+	})
+\end{lstlisting}
+Para cada uno de los valores medios mensuales, dividimos el valor de radiación global media entre el $B_{0d}(0)$ calculado anteriormente.
 
-Un esquema resumido del proceso se indica a continuación:
+Habiendo calculado el índice de claridad, podemos utilizar su valor para calcular la Fracción de radiación difusa en el plano horizontal ($F_D=\frac{D(0)}{G(0)}$). Para ello, podemos utilizar la ecuación de Page para aproximar el dicho valor conociendo el índice de claridad.
 
-\begin{figure}[ht]
-\includegraphics[scale=0.7]{32_ESFBOOK_1}
-\centering
-\caption{Procedimiendo de cálculo (Figura 3.3 pág 31 \cite{esf_book})}
-\label{fig:fig_1}
-\end{figure}
+La ecuación que define éste valor es:
+\begin{equation}\label{eqn_page}
+F_{Dm}=1-1,13·K_{Tm}
+\end{equation}
+En código, la expresión es:
+\begin{lstlisting}[style=ES6, caption={Fracción de difusa}]
+	newData.meanValues.forEach((elem, index) => {
+		const Fd = 1 - 1.13 * elem.Ktd
+	})
+\end{lstlisting}
+Donde elem.Ktd es el índice de claridad calculado en el paso anterior.
 
-En la figura \ref{fig:fig_1} se muestra el proceso de cálculo que se va a seguir para llegar a los valores necesarios para poder estimar la potencia y energía de la instalación.
+Al conocer, mediante la ecuación de Page el valor de la fracción de radiación difusa, podemos aplicar dicha relación para calcular los valores de radiación directa y difusa en el plano horizontal, a partir de la radiación global.
+Las dos ecuaciones necesarias para calcular estos valores son:
 
-Los pasos descritos son:
-\begin{enumerate}
-	\item Separar la irradiación global diaria en el plano horizontal en sus componentes de irradiación difusa y directa.
-	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
-	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
-	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
-	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
-\end{enumerate}
+\begin{equation}\label{eqn_rad_directa}
+D_d(0) = F_D · G_d(0)
+\end{equation}
 
-\subsection{Separación de la irradiación global diaria en sus componentes}
+\begin{equation}\label{eqn_rad_directa}
+B_d(0) = G_d(0) - D_d(0)
+\end{equation}
 
-Como se ha indicado anteriormente, el primer paso del proceso de cálculo es el de separar la irradiación global diaria en en plano horizontal en sus dos componentes, la directa y la difusa.
+En código, las expresiones toma la siguiente forma:
+\begin{lstlisting}[style=ES6, caption={Radiación directa y difusa}]
+	newData.meanValues.forEach((elem, index) => {
+		const Dd0 = elem.Fd * elem.meanGR
+		const Bd0 = elem.meanGR - Dd0
+	})
+\end{lstlisting}
 
+Para cada uno de los doce valores de radiación global media, aplicamos la fracción calculada anteriormente para obtener los dos valores de radiación en el plano horizontal.
 
+\section{Radiación en superficies inclinadas}
 
+Para poder obtener los valores de de irradiación global en un plano inclinado a partir de valores de irradiación global en el plano horizontal se describe en la figura \ref{fig:fig_1}. El proceso de cálculo parte de los valores de irradiación global diaria en el plano horizontal, o en el caso de no tener estos valores disponibles, podemos utilizar la ecuación \ref{eqn_page} para obtener las respectivas medias mensuales de irradiación difusa y directa en el plano horizontal.
+A continuación, para poder llevar a cabo las transformaciones al plano inclinado, debemos estimar los valores de irradiancia difusa, directa y global en el plano horizontal. Con estas estimaciones podemos calcular los valores correspondientes al plano inclinado.
 
+Integrando los valores de irradiancia se obtienen las estimaciones de irradiación diaria difusa, directa y global en el plano horizontal. A estos valores les aplicaremos las pérdidas por suciedad, añadiéndole el apellido de ``efectiva`` a la irradiancia e irradiación. Será esta irradiación incidente efectiva la que se utilizará para el calculo de la energía producida por el generador.
 
+\subsection{Estimación de irradiancia a partir de irradiación diaria}
+Partiendo de los valores calculados anteriormente de irradiación diaria difusa, directa y global en el plano horizontal, podemos realizar la transformación al plano inclinado estimando el perfil de irradiancia correspondiente a cada valor de irradiación.
 
+Como la variación solar durante una hora es relativamente baja, podemos suponer que el valor medio de irradiancia durante esa hora coincide numéricamente con irradiación horaria ($ \frac{kWh}{m^2}$).
 
+Por otro lado, mediante análisis de series temporales se ha demostrado que la relación entre la irradiancia y la irradiación difusa es equivalente a la existente entre la irradiancia y la irradiación extra-atmosférica.
+\begin{equation}
+	r_D = \frac{D(0)}{D_d(0)} = \frac{B_0(0)}{B_{0d}(0)	}
+\end{equation}
 
+El factor $r_D$  se puede calcular mediante la siguiente expresión:
+\begin{equation}
+r_D = \frac{\pi}{T}\cdot\frac{\cos(\omega)-\cos(\omega_s)}{\omega_s\cdot\cos(\omega_s)-\sin(\omega_s)}
+\end{equation}
+Donde:
+\begin{itemize}
+\item T: Duración del día en horas
+\item $\omega_s$: ángulo de amanecer, expresado en radianes
+\item $\omega$: instante central de la hora correspondiente
+\end{itemize}
 
+La implementación en código es la siguiente
 
+\begin{lstlisting}[style=ES6, caption={Cálculo de rD}]
+	const rd = []
+	for (let h = -12; h < 12; h++) {
+			const hRad = Math.cos(deg2rad(h * 15))
+			const rdval = (Math.PI / 24) * ((hRad - Math.cos(elem.ws)) / (elem.ws * 
+			Math.cos(elem.ws) - Math.sin(elem.ws)))
+			rd.push(rdval)
+		}
+\end{lstlisting}
 
+Para cada uno de los valores horarios de -12 a 12, se calcula el angulo horario multiplicando por 15 grados y se introduce en la ecuación, obteniendo 24 valores por cada uno de los meses.
 
+El mismo análisis muestra también la relación entre la irradiancia e irradiación global asimilable a una función dependiente de la hora solar.
+\begin{equation}
+r_G = \frac{G(0)}{G_d(0)} ) r_D\cdot(a+b\cdotcos(\omega))
+\end{equation}
+siendo:
+\begin{equation}
+a=0,409 - 0,5016\cdot\sin(\omega_s+\frac{\pi}{3})
+\end{equation}
+\begin{equation}
+a=0,6609 - 0,4767\cdot\sin(\omega_s+\frac{\pi}{3})
+\end{equation}
 
+donde $\omega_s$ es negativa y está expresada en radianes.
 
-
+En código, los expresiones anteriores se representan de la siguiente forma:
+\begin{lstlisting}[style=ES6, caption={Cálculo de rG}]
+		const rg = []
+		const a = 0.409 - 0.5016 * Math.sin(elem.ws + Math.PI / 3)
+		const b = 0.6609 + 0.4767 * Math.sin(elem.ws + Math.PI / 3)
+		let i = 0
+		for (let h = -12; h < 12; h++) {
+			const hRad = Math.cos(deg2rad(h * 15))
+			const rgval = rd[i] * (a + b * hRad)
+			rg.push(rgval)
+			i++
+		}
+\end{lstlisting}
 
 
