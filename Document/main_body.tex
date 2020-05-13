@@ -330,4 +330,216 @@ En código, los expresiones anteriores se representan de la siguiente forma:
 		}
 \end{lstlisting}
 
+\subsection{Transformación al plano del generador}
+
+Una vez calculados los valores de irradiancia en el plano horizontal, el siguiente paso consiste en estimar los componentes de irradiancia en el plano del generador. La irradiancia directa es calculable mediante criterios geométricos, teniendo en cuenta el ángulo del cenit solar y el ángulo de incidencia en el generador.\\
+
+Para obtener estos valores en el plano inclinado, lo primero que debemos calcular son los valores horarios de radiación global, directa y difusa en el plano horizontal, aplicando las dos relaciones, $r_D$ y $r_G$ que se han calculado en la sección anterior.
+
+Para ello, emplearemos las siguientes ecuaciones:
+\begin{equation}
+D_h = r_D \cdot D_d(0)
+\end{equation}
+\begin{equation}
+G_h = r_G \cdot G(0)
+\end{equation}
+\begin{equation}
+G_h = G_h - D_h
+\end{equation}
+
+En código, las expresiones serían las siguientes:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de rG}]
+		const hourlyValues = []
+		let hour = -12
+		const dawn = rad2deg(elem.ws) / 15
+		elem.dawn = dawn
+		for (let i = 0; i < 24; i++) {
+			const cosHour = Math.cos(deg2rad(hour * 15))
+			const cosWs = Math.cos(elem.ws)
+			if (cosHour > cosWs) {
+				const Dh = elem.rd[i] * elem.Dd0
+				const Gh = elem.rg[i] * elem.meanGR
+				const Bh = Gh - Dh
+				hourlyValues.push({
+					Bh, Dh, Gh, cosHour, cosWs,
+				})
+			} else {
+				hourlyValues.push({
+					Bh: 0, Dh: 0, Gh: 0, cosHour, cosWs,
+				})
+			}
+			hour++
+		}
+		elem.hourlyValues = hourlyValues
+\end{lstlisting}
+
+Se puede observar que para las horas en las que el coseno es menor que el coseno del ángulo de amanecer, se toman valores nulos para las radiaciones.\\
+
+Una vez obtenidos estos valores horarios de irradiancia en el plano horizontal, el siguiente paso consiste en llevarlo al plano del generador.
+
+El planteamiento de ésta transición es el siguiente:
+\begin{itemize}
+\item \textbf{Irradiancia Directa $B(\beta,\alpha)$:} ecuación basada en geometría solar (ángulo cenital) y del generador(ángulo de incidencia).
+\begin{equation}
+B(\beta,\alpha) = B(0) \cdot \frac{max(0,\cos(\theta_s))}{\cos(\theta_{zs})}
+\end{equation}
+\item \textbf{Irradiancia Directa $D(\beta,\alpha)$:} Existen dos modelos del estado de cielo, el isotrópico y el anisotrópico. En este caso, utilizaremos el modelo anisotrópico.
+\begin{equation}
+D(\beta,\alpha) = D^I(\beta,\alpha)+D^C(\beta,\alpha)
+\end{equation}
+\begin{equation}
+D^I(\beta,\alpha) = D(0)\cdot(1-k_1)\cdot\frac{1+\cos(\beta)}{2}
+\end{equation}
+\begin{equation}
+D^C(\beta,\alpha) = D(0)\cdot k_1 \cdot \frac{max(0, \cos(\theta_s))}{\cos(\theta_{zs})}
+\end{equation}
+\item \textbf{Irradiancia de Albedo $R(\beta,\alpha)$:} Se considera nula por tener un porcentaje de aportación muy reducido.
+\end{itemize}
+
+Estos componentes sumados, forman la expresión de la irradiancia global en el plano del generador.
+\begin{equation}
+G(\beta,\alpha)=D(\beta,\alpha)+B(\beta,\alpha)+R(\beta,\alpha)
+\end{equation}
+
+En la ecuación de la irradiancia directa, uno de los elementos que influyen en el cálculo es el angulo de incidencia, cuya expresión es:
+\begin{equation} \label{eqn_ang_incid}
+\begin{split}
+\cos(\theta_s)=sign(\phi)\cdot [ \sin(\beta)\cos(\alpha)\cos(\delta)\sin(\phi)- \\
+-\sin(\beta)\cos(\alpha)\cos(\phi)\sin(\delta)]+ \\
++\sin(\beta)\sin(\alpha)\cos(\delta)\sin(\omega)+ \\
++\cos(\beta)\cos(\delta)\cos(\omega)\cos(\phi)+ \\
++\cos(\beta)\sin(\delta)\sin(\phi) \\
+\end{split}
+\end{equation}
+Donde:
+\begin{itemize}
+\item \textbf{$\beta$}: Inclinación del generador
+\item \textbf{$\alpha$}: Orientación del generador
+\item \textbf{$\phi$}: Latitud del emplazamiento
+\item \textbf{$\delta$}: Declinación
+\item \textbf{$\omega$}: Hora solar
+\end{itemize}
+\newpage
+Traducida a código, la expresión será:
+\begin{lstlisting}[style=ES6, caption={Cálculo del ángulo de incidencia}]
+		for (let h = -12; h < 12; h++) {
+			const betaRad = deg2rad(newData.angle)
+			const alphaRad = deg2rad(newData.orientation)
+			const hRad = deg2rad(h * 15)
+			const latRad = deg2rad(newData.latitude)
+			const declRad = deg2rad(elem.decl)
+			const anglIncidenciaVal =
+				Math.sign(newData.latitude) *
+				(Math.sin(betaRad) * Math.cos(alphaRad) * Math.cos(declRad) * 
+				Math.cos(hRad) * Math.sin(latRad) -Math.sin(betaRad) * 
+				Math.cos(alphaRad) *Math.cos(latRad) * Math.sin(declRad)) +
+				Math.sin(betaRad) * Math.sin(alphaRad) * Math.cos(declRad) *
+				Math.sin(hRad) + Math.cos(betaRad) * Math.cos(declRad) *
+				 Math.cos(hRad) * Math.cos(latRad) + Math.cos(betaRad) * 
+				 Math.sin(declRad) * Math.sin(latRad)
+			const anglIncidencia = rad2deg(Math.acos(anglIncidenciaVal))
+			const anglIncidencia = rad2deg(Math.acos(anglIncidenciaVal))
+			incid.push(anglIncidencia)
+			elem.incid = incid
+			}
+\end{lstlisting}
+\newpage
+Teniendo el valor del ángulo de incidencia, podemos proceder a calcular las dos componentes de irradiancia para el plano del generador.
+
+\begin{lstlisting}[style=ES6, caption={Cálculo del ángulo de incidencia}]
+newData.meanValues.forEach((elem, index) => {
+		for (let i = 0; i < 24; i++) {
+			const zenitRad = deg2rad(elem.zenit[i])
+			const incidRad = deg2rad(elem.incid[i])
+			const betaRad = deg2rad(newData.angle)
+			const numerator = Math.max(0, Math.cos(incidRad))
+			const denominator = Math.cos(zenitRad)
+			const Btilt = elem.hourlyValues[i].Bh * (numerator / denominator)
+			const k1 = elem.hourlyValues[i].Bh / elem.B00[i]
+			const DcTilt = elem.hourlyValues[i].Dh * k1 * (numerator / denominator)
+			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2)
+			const Dtilt = DcTilt + DiTilt
+			const Gtilt = Btilt + Dtilt
+			elem.hourlyValues[i] = {
+				...elem.hourlyValues[i],
+				Btilt,Dtilt,DcTilt,DiTilt,Gtilt,cosZenit: Math.cos(zenitRad),
+			}
+		}
+	})
+\end{lstlisting}
+
+Con estos cálculos obtenemos la irradiancia global incidente, es decir, en el plano del generador. El siguiente es añadirle el apellido de ``efectica'' aplicándole las pérdidas por ángulo de incidencia y suciedad.
+
+\subsection{Pérdidas por ángulo de incidencia y suciedad}
+
+Al tratarse de sistemas estáticos, la radiación incidente en un módulo fotovoltaico está frecuentemente desviada de la normal a la superficie del módulo. Esta desviación, cuantificada por el ángulo de incidencia [eq. \ref{eqn_ang_incid}], es causa de pérdidas por reflexión.
+
+Por otro lado, la suciedad acumulada en la superficie del módulo altera las propiedades angulares del mismo y reduce la capacidad de transmisión del vidrio.
+
+Estos dos fenómenos reducen la irradiancia que es aprovechada por el módulo. Para el caso de la radiación directa, la expresión de irradiancia efectiva es la siguiente:
+\begin{equation}
+B_{ef}(\beta, \alpha)= B(\beta,\alpha)\cdot\frac{T_{sucio}(0)}{T_{limpio}(0)}\cdot(1-FT_B(\theta_s))
+\end{equation}
+donde $FT_B(\theta_s)$ es el factor de pérdidas angulares para la irradiancia directa, calculable mediante la ecuación:
+\begin{equation}
+FT_B(\theta_s) = \frac{exp(-\frac{\cos(\theta_s)}{a_r})-exp(-\frac{1}{a_r})}{1-exp(-\frac{1}{a_r})}
+\end{equation}
+
+Los valores del coeficiente de pérdidas angulares deben ser determinados de forma experimental. En la tabla quedan recogidos algunos valores característicos de un módulo de silicio monocristalino convencional para los diferentes grados de suciedad. Además en la tabla también se recogen los valores de la transmitancia al interior del módulo en incidencia normal respecto a uno limpio $\frac{T_{sucio}(0)}{T_{limpio}(0)}$.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+\hline
+Grado de suciedad & $\frac{T_{sucio}(0)}{T_{limpio}(0)}$ & $a_r$ & $c_2$ \\
+Limpio            & 1                                                          & 0,17 & -0.069 \\
+Bajo              & 0,98                                                       & 0,20 & -0.054 \\
+Medio             & 0,97                                                       & 0,21 & -0.049 \\
+Alto              & 0,92                                                       & 0,22 & -0.023
+\end{tabular}
+\label{tab:perdidas_suciedad}
+\caption{Coeficiente de pérdidas angulares y transmitancia relativa en incidencia normal para diferentes niveles de suciedad }
+\end{table}
+El cálculo del coeficiente $FT_B(\theta_s)$, en código, toma este aspecto:
+\begin{lstlisting}[style=ES6, caption={Cálculo del coeficiente $FT_B(\theta_s)$}]
+newData.TDirtTClean = TDirtTClean
+newData.ar = ar
+newData.c1 = c1
+newData.c2 = c2
+const FTB = (Math.exp(-Math.cos(tiltRad) / ar) - 
+Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar))
+\end{lstlisting}
+
+
+Para la componente de isotrópica existe otra expresión que depende del ángulo de inclinación del generador, del coeficiente de pérdidas angulares y de dos coeficientes de ajuste $c_1$ y $c_2$. El primero de ellos toma un valor constante $c_1=\frac{4}{3\pi}$. El segundo depende linealmente de $a_r$ según se recoge en la tabla. En ésta expresión el ángulo $\beta$ está en radianes.
+\begin{equation}
+FT_D \simeq exp[-\frac{1}{a_r}\cdot(c_1\cdot(\sin\beta + \frac{\pi-\beta-\sin\beta}{1+\cos\beta	})+c_2\cdot(\sin\beta + \frac{\pi-\beta-sin\beta}{1+\cos\beta})^2)]
+\end{equation}
+\newpage
+Para estas componentes el cálculo de irradiancia efectiva es similar al de la irradiancia directa. Para la componente difusa circunsolar emplearemos el factor de pérdidas angulares de la irradiancia efectiva:
+
+\begin{equation}
+D_{ef}^I(\beta, alpha) = D^I(\beta, alpha) \cdot \frac{T_{sucio}(0)}{T_{limpio}(0)} \cdot (1-FT_D(\beta))
+\end{equation}
+
+\begin{equation}
+D_{ef}^C(\beta, alpha) = D^C(\beta, alpha) \cdot \frac{T_{sucio}(0)}{T_{limpio}(0)} \cdot (1-FT_B(\beta))
+\end{equation}
+
+En código las ecuaciones toman esta forma:
+\begin{lstlisting}[style=ES6, caption={Cálculo de las componentes efectivas}]
+				const expFTD =
+					-(1 / ar) *
+					(c1 * (Math.sin(betaRad) + (Math.PI - betaRad - Math.sin(betaRad)) / (1 + 
+					Math.cos(betaRad))) +
+						c2 * Math.pow(Math.sin(betaRad) + (Math.PI - betaRad - 
+						Math.sin(betaRad)) / (1 + Math.cos(betaRad)), 2))
+				const FTD = Math.exp(expFTD)
+
+				const Btilt = elem.hourlyValues[i].Btilt * TDirtTClean * (1 - FTB)
+				const DiTilt = elem.hourlyValues[i].DiTilt * TDirtTClean * (1 - FTD)
+				const DcTilt = elem.hourlyValues[i].DcTilt * TDirtTClean * (1 - FTB)
+\end{lstlisting}
+
 
