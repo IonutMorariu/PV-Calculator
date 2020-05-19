@@ -542,4 +542,94 @@ En código las ecuaciones toman esta forma:
 				const DcTilt = elem.hourlyValues[i].DcTilt * TDirtTClean * (1 - FTB)
 \end{lstlisting}
 
+Antes de pasar a calcular la energía producida por el generador configurado, se va a llevar a cabo una filtración de datos para eliminar los valores horarios entre el atardecer y el amanecer.
+Para ello, aplicamos este algoritmo a los datos calculados anteriormente
+\begin{lstlisting}[style=ES6, caption={Selección de los valores clave}]
+	newData.meanValues.forEach((elem, index) => {
+		const significantValues = []
+		elem.hourlyValues.forEach((value, index) => {
+			if (Math.abs(value.hour) < Math.abs(elem.dawn)) {
+				significantValues.push(value)
+			}
+		})
+		elem.significantValues = significantValues
+	})
+\end{lstlisting}
+Como se observa, los valores horarios menores al amanecer, en valor absoluto, no se introducen en la lista de valores significativos.
 
+\section{Cálculo de la energía producida por el generador}
+
+Una vez calculados los valores de radiación en el plano del generador, el siguiente paso será proceder a estimar la energía que es capaz de producir dicho generador conectado a red.\\
+
+En el caso de la aplicación desarrollada en el proyecto, el objetivo es estimar la energía máxima que será capaz de producir un sistema fotovoltaico conectado a red.
+
+\subsection{Definición de un SFCR}
+
+Un Sistema Fotovoltaico Conectado a Red (SFCR) es un sistema cuya función es producir energía eléctrica en una condiciones específicas, de tal manera que ésta pueda ser inyectada en la red eléctrica convencional. Para ello, un SFCR se compone del propio generador fotovoltaico, un inversor DC/AC y un conjunto de protecciones eléctricas. Tal y como se muestra en la figura \ref{fig:sfcr}.
+
+\begin{figure}[ht]
+\includegraphics[scale=0.7]{SFCR}
+\centering
+\caption{Esquema de un SFCR (Figura 6.1 pág 65 \cite{esf_book})}
+\label{fig:sfcr}
+\end{figure}
+
+La energía producida por un SFCR es consumida total o parcialmente en el emplazamiento de la instalación, o en sus cercanías. La energía sobrante es inyectada a la red de distribución, y a cambio el propietario es compensado económicamente a través de sistemas de retribución tales como: la retribución con prima o el balance neto.
+
+A diferencia de un sistema autónomo o de bombeo, el diseño de SFCR no necesita considerar un consumo mínimo a satisfacer. Con este mecanismo, el objetivo es que la producción anual del sistema sea la máxima posible sin tomar en consideración los consumos cercanos.
+
+\subsection{Configuración de los elementos del sistema}
+
+A la hora de estimar la energía producida por un SFCR, debemos definir las características nominales de los componentes que forman parte de este, como se muestra en la figura \ref{fig:sfcr}.
+Con el objetivo de reducir al máximo la complejidad de la aplicación de cara al usuario final (cuyos conocimientos de fotovoltaica, de media, serán reducidos) se han fijado unos valores standard para el módulo fotovoltaico, la configuración del generador y el inversor.
+
+\newpage
+
+Estos valores se muestran en las siguientes tablas:
+\begin{itemize}
+\item \textbf{Configuración del módulo} El módulo elegido es uno disponible comercialmente, fabricado por JINKO SOLAR, modelo JKM320PP \footnote{\textit{Módulos solar JINKO SOLAR, modelo JKM320PP \url{https://autosolar.es/pdf/Ficha-Tecnica-Jinko-Solar-305-320W.pdf}}}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+\hline
+G*               & 1000 $ \frac{W}{m^2}$    \\
+V_{oc}*          & 46,4 V                   \\
+I_{sc}*          & 9,05 A                   \\
+V_{mpp}*         & 37,4 V                   \\
+I_{mpp}*         & 8,56 A                   \\
+N_{cs}           & 12                       \\
+N_{cp}           & 6                        \\
+TONC             & 45 $\degree$             \\
+T_c              & 25 $\degree$             \\
+m                & 1,3                      \\
+Área modulo      & $1,957 \times 0,992 m^2$ \\
+Potencia Nominal & 320 W                    \\  
+\end{tabular}
+\label{tab:module_conf}
+\caption{Configuración módulo standard }
+\end{table}
+\item \textbf{Inversor}:
+\begin{table}[ht]
+\centering
+\begin{tabular}{llll}
+\hline
+k_0      & 0,01  \\
+k_1      & 0,025 \\
+k_2      & 0,05  \\
+Potencia & 40 kW \\
+V_{min}  & 420 V \\
+V_{max}  & 750 
+\end{tabular}
+\label{tab:inverter_conf}
+\caption{Configuración del inversor }
+\end{table}
+
+\item \textbf{Generador} La configuración del generador será de \textbf{12} módulos en serie y \textbf{11} módulos en paralelo.
+
+\end{itemize}
+
+
+\subsection{Funcionamiento de una célula solar}
+
+Para poder llevar a cabo la estimación de la energía producida por el generador, debemos conocer como influye factores como la radiación o la temperatura en una célula solar y en los valores de tensión y corriente que se alcanzan en dichas condiciones.
