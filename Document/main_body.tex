@@ -106,7 +106,7 @@ $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 &
 Para calcular esta irradiación diaria, debemos calcular primero los diferentes componentes que forman parte de esta:
 \begin{itemize}
 \item $B_{0} = 1367 \frac{W}{m^2}$
-\item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 · \cos(\frac{2\pid_n}{365})$
+\item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 \cdot \cos(\frac{2\pid_n}{365})$
 
 En código se representa de la siguiente manera:
 \begin{lstlisting}[style=ES6, caption={Factor de corrección por excentricidad}]
@@ -602,9 +602,10 @@ N_{cs}           & 12                       \\
 N_{cp}           & 6                        \\
 TONC             & 45 $\degree$             \\
 T_c              & 25 $\degree$             \\
+V_t              & 0,025V	                \\
 m                & 1,3                      \\
 Área modulo      & $1,957 \times 0,992 m^2$ \\
-Potencia Nominal & 320 W                    \\  
+Potencia Nominal & 320 Wp                   \\  
 \end{tabular}
 \label{tab:module_conf}
 \caption{Configuración módulo standard }
@@ -633,3 +634,410 @@ V_{max}  & 750
 \subsection{Funcionamiento de una célula solar}
 
 Para poder llevar a cabo la estimación de la energía producida por el generador, debemos conocer como influye factores como la radiación o la temperatura en una célula solar y en los valores de tensión y corriente que se alcanzan en dichas condiciones.
+
+Existen dos puntos clave que definen una célula solar, la corriente de cortocircuito ($I_{sc}$) y la tensión de circuito abierto ($V_{oc}$). 
+Estos dos parámetros suelen estar disponibles en la información asociada a una célula y se pueden relacionar mediante la siguiente ecuación:
+
+\begin{equation}
+I = I_{sc} \cdot \left[ 1 - exp\left(\frac{e\cdot(V_{oc}-V}{m \cdot k \cdot T_c}\right)\right]
+\end{equation}
+
+\subsubsection{Punto de máxima potencia}
+
+Superpuesta a la curva de corriente-tensión, la figura \ref{fig:mpp} incluye la relación entre la potencia y la tension. Como se puede observar, existe un punto donde dicha potencia es máxima, antes de volver a experimentar una bajada. Las coordenadas de dicho punto vienen definidas por la condición $\frac{dP}{dV} = 0$. En dicho punto, la potencia entregada por la célula es máxima y será considerada como potencia nominal: $P_{mpp} = V_{mpp} \cdot I_{mpp}$. La unidades de dicha potencia son los vatios pico (Wp), indicando así que se trata de la máxima potencia alcanzable.\\
+
+\begin{figure}[ht]
+\includegraphics[scale=0.7]{MPP}
+\centering
+\caption{Curvas corriente-tensión (línea discontinua) y potencia-tensión (línea contínua) de una célula solar ( $T_a=20\degree C$ y $G=800 \frac{W}{m^2}$) (Figura 4.6 pág 49) \cite{esf_book})}
+\label{fig:mpp}
+\end{figure}
+
+
+Como la célula funciona en corriente continua, su potencia es $ P = V \cdot I $ y por tanto:
+
+\begin{equation}
+\begin{align}
+\frac{d(I \cdot V)}{dV} &= V \cdot \frac {dI}{dV}+I\cdot\frac{dV}{dV}\\
+dP &= V\cdotdI+I\cdotDV
+\end{align}
+\end{equation}
+
+En el punto de máxima potencia se cumplirá:
+\begin{equation}
+\frac{dI}{dV}=-\frac{I_{mpp}}{V_{mpp}}
+\end{equation}
+\subsubsection{Factor de forma y eficiencia}
+
+Como se puede observar en la figura \ref{fig:mpp}, el área encerrada por el rectángulo $I_{mpp}\cdot V_{mpp}$ es inferior al definido por $I_{sc} \cdot V_{oc}$. La relación entre estas dos áreas, se conoce como factor de forma, y toma la siguiente expresión:
+\begin{equation}
+\label{eqn_FF}
+FF = \frac{I_{mpp} \cdot V_{mpp}}{I_{sc} \cdot V_{oc}}
+\end{equation}
+
+Este factor toma valores entre 0,7 y 0,8 variando poco de unas células a otras. Conociendo los valores de $I_{sc}$ y $V_{oc}$ es posible calcular la potencia en el punto de máxima potencia, dado que $P_{mpp}=FF \cdot I_{sc} \cdot V_{oc}$.
+
+Por otra parte, la calidad de una célula se puede cuantificar según la ecuación de la eficiencia de conversión:
+\begin{equation}
+\eta = \frac{I_{mpp} \cdot V_{mpp}}{P_L}
+\end{equation}
+donde $P_L$ representa la potencia luminosa que incide en la célula.
+
+\subsubsection{Influencia de la temperatura y la radiación}
+
+Es importante tener en cuenta, a la hora de entender el funcionamiento de una célula solar, la influencia de los dos principales factores externos: la temperatura ambiente y la iluminación incidente o radiación.
+
+El aumento de la temperatura tiene una influencia notable en la tensión de circuito abierto de la célula según el valor $dV_{oc}/dT_c$. donde $T_c$ es la temperatura de la célula, dependiente de la temperatura ambiente y la radiación incidente. La forma de calcular ésta temperatura depende de las características constructivas del módulo que encapsula a la célula. Si el fabricante no nos ofrece información sobre este valor, para células de silicio cristalino se común tomar el siguiente valor:
+\begin{equation}
+\frac{dV_{oc}}{dT_c}=-2,3\frac{mV}{ \circ C}
+\end{equation}
+
+\subsubsection{Cálculo del punto de máxima potencia}
+
+Anteriormente, se ha mostrado la relación entre la temperatura y la irrandiancia con la tension de \textit{circuito abierto} $V_{oc}$ y la corriente de \textit{cortocircuito} $I_{sc}$. Además, los fabricantes suelen incluir estos dos valores en el punto de máxima potencia en las condiciones estándar de medida.
+
+Por tanto, para poder estimar el comportamiento de la célula en otras condiciones, es necesario trasladar estos parámetros a los valores de temperatura e irradiancia en dicha situación.\\
+
+El procedimiento de cálculo consistirá en comenzar asumiendo que el factor de forma es constante, para calcular los valores de $I_{sc}$ y $V_{oc}$ en las condiciones de temperatura y radiación del emplazamiento. Posteriormente realizaremos los cálculos para tomar en cuenta la variación del factor de forma.
+
+
+
+\subsection{Asociación de dispositivos fotovoltaicos}
+
+Por defecto, las características eléctricas de una sola célula no son suficientes para alimentar una carga convencional. Por lo tanto, es necesario realizar agrupaciones en serie y en paralelo de varias de estas células en lo que conocemos como módulo fotovoltaico para entregar de esta manera los valores de tensión y corriente adecuados para la carga.
+
+Además, un módulo fotovoltaico protege físicamente de la intemperie y aísla eléctricamente al conjunto de células, otorgando la rigidez mecánica necesaria.
+
+\subsubsection{Modelado de un módulo}
+
+Conociendo el comportamiento de una célula solar independiente, podemos trasladarlo al módulo teniendo en cuenta la configuración de éste, sobre todo el numero de células en serie y en paralelo que lo componen.
+
+Para modelar el funcionamiento de un módulo podemos realizar las siguientes suposiciones:
+\begin{itemize}
+\item Los efectos de la resistencia en paralelo son despreciables.
+\item La resistencia serie es independiente de las condiciones de operación.
+\item La corriente fotogenerada ($I_L$) es igual a la corriente de cortocircuito.
+\item En cualquier condición de operación: $exp(\frac{V+I\cdotR_s}{V_t}) > 1$
+\end{itemize}
+
+En un módulo compuesto por $N_{cs}$ células en serie y $N_{cp}$ ramas en paralelo, y suponiendo que todas las células del módulo tienes características idénticas, la tensión de dicho módulo es $V_m= N_{cs} \cdot V_c$ y la corriente del módulo es $I_m = N_{cp} \cdot I_c$ siendo $I_c$ y $V_c$ la corriente y la tensión de  una célula, respectivamente.
+
+Dadas estas suposiciones, la curva de la corriente de módulo toma la siguiente expresión:
+
+\begin{equation}
+I_m = I_{sc} \cdot \left( 1 - exp \left(\frac{V_m - V_{oc} + I_m \cdot R_s}{Vt}\right) \right)
+\end{equation}
+
+Supondremos que la corriente de cortocircuito depende exclusivamente y de forma linea de la irradiancia:
+\begin{equation}
+\label{eqn_I_sc}
+I_sc = G_{ef} \cdot \frac{I_{sc}^*}{G_{stc}}
+\end{equation}
+y la tensión de circuito abierto depende exclusivamente de la temperatura de célula, y decrece linealmente con ella:
+\begin{equation}
+\label{eqn_V_oc}
+V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c}
+\end{equation}
+
+Como ya hemos mencionado anteriormente, si no hay información específica del por parte del fabricante, para módulos de silicio cristalino es habitual emplear el valor:
+\begin{equation}
+\frac{dV_{oc}}{dT_c}=-2,3\frac{mV}{ celula \degree C}
+\end{equation}
+
+\subsubsection{Comportamiento térmico del módulo}
+
+En las ecuaciones anteriores se hace referencia a las condiciones estándar de medida. En estas condiciones, la temperatura de la célula es de $25\degree C$. Sin embargo, la temperatura de operación de la célula es diferente y depende del balance de potencias del módulo.
+
+El módulo recibe potencia luminosa, absorbiendo la fracción de ésta que no se refleja al exterior. De dicha fracción parte es transformada en energía eléctrica mientras que el resto se entrega en forma de calor al entorno.
+
+Para simplificar podemos asumir que el incremento de la temperatura de la célula respecto a la ambiente depende linealmente de la irradiancia incidente en ésta. El coeficiente de proporcionalidad depende de muchos factores, tales como el modo de instalación del módulo, la velocidad del viento, la humedad del ambiente o las características constructivas del laminado que cubre las células.
+
+Todos estos factores quedan recogidos en un valor único representado por la temperatura de operación nominal de la célula (NOCT o TONC), definida como aquella que alcanza una célula cuando su módulo trabaja en las siguientes condiciones:
+\begin{itemize}
+\item Irradiancia: $G=800 \frac{W}{m^2}$.
+\item Espectro: el correspondiente $AM=1,5$.
+\item Incidencia normal.
+\item Temperatura ambiente: $T_a = 20 \degree C$.
+\item Velocidad del viento:  $ v_v = 1 \frac{m}{s}$.
+\end{itemize}
+
+\begin{equation}
+\label{eqn_T_c}
+T_c = T_a + \frac{G_{ef}\cdot(TONC - 20)}{800}
+\end{equation}
+
+Como se puede observar, en la temperatura de la célula influyen tanto la temperatura ambiente como la radiación global eficaz. Al trabajar con valores horarios, es necesario conocer el valor de la temperatura ambiente en cada hora del día.
+
+
+
+El procedimiento para calcular los valores de temperatura ambiente horarios para cada uno de los meses en el emplazamiento indicado por el usuario no es trivial pues normalmente no suele haber un registro histórico de temperaturas. Para ello vamos a utilizar el proceso descrito en el documento \cite{temp_paper}.
+
+En dicho documento se describe un proceso para desarrollar un perfil horario de temperaturas partiendo de una temperatura máxima y mínima.
+
+Los pasos a seguir son:
+
+\begin{enumerate}
+\item \textbf{Obtención de la temperatura mínima y máxima}: Lo primero que necesitamos para poder realizar el perfil de temperatura es conocer los valores de temperatura mínima y máxima para cada uno de los meses. Para ello utilizaremos la API que nos proporciona AEMET a través de su plataforma de OPENDATA \footnote{\textit{AEMET OPENDATA}: Base de datos abierta de información climatológica, entre otras \url{https://opendata.aemet.es}}. Para ello buscamos en su base de datos la estación climatológica más cercana a las coordenadas del usuario y solicitamos la información necesaria, en este caso las temperaturas mensuales de un año entero.
+\item \textbf{Cálculo del ángulo de amanecer}: Una vez obtenidos los valores de temperatura mensuales, el siguiente paso es calcular el ángulo de amanecer para cada uno de los 12 días normales, como se ha hecho en pasos anteriores mediante la declinación. Para ello empleamos las dos ecuaciones:
+\begin{equation}
+\delta = 23.45 \cdot \sin\left(\frac{2\pi \cdot (d_N + 284) }{365}\right)
+\end{equation}
+\begin{equation}
+\begin{align}
+\cos(\omega_s) &= -\tan(\delta) \cdot \tan(lat)\\
+\omega_s &= acos(\omega_s)
+\end{align}
+\end{equation}
+donde:
+\begin{itemize}
+\item $d_N$: Día normal correspondiente \ref{tab:dias_promedio}
+\item lat: Latitud del emplazamiento
+\end{itemize}
+\item \textbf{Calcular los valores de $T_m$ y $T_r$ }: En el documento mencionado, el primer paso para llegar al perfil de temperaturas, una vez obtenidos los valores de $T_{max}$ y $T_{min}$ es calcular los dos valores intermedios:
+\begin{equation}
+T_m = \frac{T_{max} + T_{min} }{2}
+\end{equation}
+
+\begin{equation}
+T_r = \frac{T_{max} - T_{min} }{2}
+\end{equation}
+
+\item \textbf{Calcular la matriz de $T_a$}: Una vez obtenidos los dos valores intermedios de $T_m$ y $T_r$, el siguiente paso es calcular la matriz de valores de temperatura ambiental $T_a$ para cada hora. Para ello el documento nos indica que debemos calcular tres valores que denomina $a_1$, $a_2$, $a_3$. Utilizaremos estos tres valores para calcular $T_1$,$T_2$,$T_3$, eligiendo uno u otro en función del angulo solar. Las expresiones de estos tres valores se indican a continuación:
+\begin{equation}
+a_1 = \frac{12\pi \cdot (\omega_s - \omega)}{21 \pi + 12 \cdot \omega_s}
+\end{equation}
+\begin{equation}
+a_2 = \frac{\pi \cdot (3\pi - 12\omega)}{3\pi - 12\omega}
+\end{equation}
+\begin{equation}
+a_3 = \frac{\pi \cdot (24\pi +  12 \cdot (\omega_s - \omega) }{21 \cdot \pi + 12 \cdot \omega_s}
+\end{equation}
+donde $\omega$ es el ángulo solar y $\omega_s$ es el ángulo amanecer.
+
+Con estos tres valores podemos calcular la otra terna de $T_1$,$T_2$ y $T_3$ con las siguientes ecuaciones:
+\begin{equation}
+T_1 = T_m - Tr \cdot cos(a_1)
+\end{equation}
+\begin{equation}
+T_2 = T_m + Tr \cdot cos(a_2)
+\end{equation}
+\begin{equation}
+T_3 = T_m - Tr \cdot cos(a_3)
+\end{equation}
+
+\item \textbf{Selección del valor clave}: en la matriz de temperatura ambiente introduciremos uno de los tres valores en función de si el ángulo solar es menor al del amanecer, si está entre en amanecer y $\frac{\pi}{4}$ o si es menor que $\frac{\pi}{4}$.
+
+\end{enumerate}
+\newpage
+En código, todo este proceso toma la siguiente forma:
+\begin{lstlisting}[style=ES6, caption={Cálculo de la temperatura ambiente}]
+	const wp = Math.PI / 4;
+	const Tm = (Tmax + Tmin) / 2;
+	const Tr = (Tmax - Tmin) / 2;
+	const Ta = [];
+	const decl = 23.45 * Math.sin((2 * Math.PI * (normalDays[index] + 284)) / 365);
+	const cosWs = -Math.tan(deg2rad(decl)) * Math.tan(deg2rad(latitude));
+	const ws = -Math.acos(cosWs);
+	for (let h = -12; h < 12; h++) {
+		const w = Math.cos(deg2rad(h * 15));
+		const a1 = (Math.PI * 12 * (ws - w)) / (21 * Math.PI + 12 * ws);
+		const a2 = (Math.PI * (3 * Math.PI - 12 * w)) / (3 * Math.PI - 12 * ws);
+		const a3 = (Math.PI * (24 * Math.PI + 12 * (ws - w))) / (21 * Math.PI + 12 * ws);
+		const T1 = Tm - Tr * Math.cos(a1);
+		const T2 = Tm + Tr * Math.cos(a2);
+		const T3 = Tm - Tr * Math.cos(a3);
+		if (w <= ws) {
+			Ta.push(T1);
+		} else if (w > ws && w <= wp) {
+			Ta.push(T2);
+		} else if (w > wp) {
+			Ta.push(T3);
+		}
+	}
+\end{lstlisting}
+
+Habiendo obtenido la matriz de temperatura ambiente, el siguiente paso es utilizar estos valores para calcular la temperatura de la célula $T_c$ con la ecuación \ref{eqn_T_c} necesaria para calcular la tensión de circuito abierto $V_{oc}$.
+\newpage
+En código sería:
+\begin{lstlisting}[style=ES6, caption={Cálculo de la temperatura de célula}]
+	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, indexA) => {
+		const meanValue = radiationData.meanValues[indexA];
+		const TCProfile = hourlyTa.map((temp, indexB) => {
+			const Gef = meanValue.hourlyValues[indexB].Gtilt * 1000;
+			const Tc = temp + (Gef * (moduleData.TONC - 20)) / 800; 
+			return Tc;
+		});
+		return { TCProfile, month: index + 1, Tmax, Tmin };
+	});
+\end{lstlisting}
+
+Como se observa en el código, para cada uno de los valores horarios utilizamos la $G_{ef}$ en el plano inclinado (en el código aparece como \textit{Gtilt}) y la temperatura ambiente calculada anteriormente ( en el código es \textit{temp} ) para calcular la $T_c$.
+
+Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn_V_oc_cs} que, como se puede observar es la misma que \ref{eqn_V_oc} pero añadiendo el número de células en serie para convertirlo a tensión del módulo
+\begin{equation}
+\label{eqn_V_oc_cs}
+V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c} \cdot N_{cs}
+\end{equation}
+que en código quedaría de la siguiente forma:
+\begin{lstlisting}[style=ES6, caption={Cálculo de la tensión de circuito abierto}]
+	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
+		const VocArray = TCProfile.map((temp) => {
+			const Voc = moduleData.VocStar + (temp - moduleData.Tc) 
+			* (-2.3 / 1000) * moduleData.Ncs;
+			return Voc;
+		});
+		5return VocArray;
+	});
+
+\end{lstlisting}
+\newpage
+Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$ que depende linealmente del valor de irradiancia según se indica en la expresión \ref{eqn_I_sc} que en código resulta de la siguiente forma:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de la corriente de cortocircuito}]
+	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
+		const IscArray = hourlyValues.map(({ Gtilt }) => {
+			const IscValue = Gtilt * 1000 * (moduleData.IscStar / moduleData.Gstar);
+			return IscValue;
+		});
+		return IscArray;
+	});
+\end{lstlisting}
+
+\subsubsection{Factor de forma variable}
+
+Los cálculos anteriores se han realizado suponiendo que el factor de forma $FF$ es constante, por tanto, de la expresión \ref{eqn_FF}, si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
+\begin{equation}
+FF = FF^*
+\end{equation}
+entonces
+\begin{equation}
+\frac{I_{mpp} \cdot V_{vmpp}}{I_{sc} \cdot V_{oc}} = \frac{I_{mpp^*} \cdot V_{vmpp}^*}{I_{sc}^* \cdot V_{oc}^*}
+\end{equation}
+
+pudiendo así obtener los valores de $I_{mpp}$ y $V_{vmpp}$.
+
+Estos cálculos se realizaron como una primera aproximación que sirvió para comprobar si el proceso de cálculo de la radiación eficaz incidente eran correcto.
+
+Sin embargo, hacer esta suposición nos aleja en cierta manera de ofrecer una estimación los más próxima a la realidad posible.
+
+Por tanto, para intentar aproximarnos los máximo posible a una estimación acertada, eliminaremos dicha suposición y tendremos en cuenta la variación del factor de forma. Para ello, utilizaremos el siguiente proceso:
+\begin{enumerate}
+\item \textbf{Cálculo de la tensión térmica, $V_t$, a temperatura de la célula}: Calcularemos el valor de $V_{t}$ a 25 $\degree$ C con la expresión:
+\begin{equation}
+V_{tn} = \frac{V_t \cdot (273 + 25)}{300}
+\end{equation} 
+\begin{lstlisting}[style=ES6, caption={Cálculo de $V_{tn}$}]
+const Vtn = (moduleData.Vt * (273 + 25)) / 300;
+\end{lstlisting}
+\item \textbf{Cálculo de $R_s^*$}: El segundo paso consiste en calcular el valor de resistencia en serie con los valores STC:
+\begin{equation}
+R_s^* = \frac{\frac{V_{oc}^*}{N_{cs}} - \frac{V_{mpp}^*}{N_{cs}} + m \cdot V_{tn} \cdot \ln \left( 1 - \frac{I_{mpp}^*}{I_{sc}^*}\right)}{\frac{I_{mpp}^*}{N_{cp}}}
+\end{equation}
+En código quedaría:
+\begin{lstlisting}[style=ES6, caption={Cálculo de $R_s^*$}]
+	const RsStar =
+		(moduleData.VocStar / moduleData.Ncs -
+			moduleData.VmppStar / moduleData.Ncs +
+			moduleData.m * Vtn * Math.log(1 - moduleData.ImppStar / moduleData.IscStar)) /
+		(moduleData.ImppStar / moduleData.Ncp);
+\end{lstlisting} 
+\item \textbf{Cálculo de $r_s$}: Utilizando el valor $R_s^*$ calculado en el paso anterior junto con los valores de $V_{oc}$ y $I_{sc}$ calculados anteriormente podemos calcular $r_s$ que se utilizará más adelante en proceso. La ecuación que lo define viene dada por
+\begin{equation}
+r_s = R_s^* \cdot \left( \frac{N_{cs}}{N_{cp}} \cdot \frac{I_{sc}}{V_{oc}}}\right)
+\end{equation}
+y el equivalente en código es
+\begin{lstlisting}[style=ES6, caption={Cálculo de $r_s$}]
+	const rs = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return RsStar * ((moduleData.Ncs / moduleData.Ncp) 
+			* (IscProfile[arrIndex][valIndex] / VocValue));
+		});
+	});
+\end{lstlisting} 
+
+Como se puede observar en la línea 4 del código, el valor de $I_{sc}$ viene acompañado por dos índices entre corchete, esto es porque en todo momento estamos trabajando con valores horarios de cada día promedio correspondiente a cada uno de los 12 meses del año, por tanto, estamos trabajando una una matriz de 12x24, de ahí el uso de los dos índices. 
+
+\item \textbf{Cálculo de $k_{oc}$}: A continuación, utilizando los valores de temperatura ambiente obtenidos con anterioridad junto con la tensión de circuito abierto, calcularemos $k_{oc}$ mediante la expresión:
+\begin{equation}
+k_{oc} = \frac{V_{oc} / N_{cs}}{m \cdot V_t \cdot \frac{T_c + 273}{300}}
+\end{equation}
+En código tendría este forma:
+\begin{lstlisting}[style=ES6, caption={Cálculo de $k_{oc}$}]
+	const koc = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return VocValue / moduleData.Ncs / (moduleData.m * ((moduleData.Vt *
+			(cellTempProfile[arrIndex].TCProfile[valIndex] + 273)) / 300));
+		});
+	});
+\end{lstlisting} 
+\end{enumerate}
+
+Con éstos cálculos previos, éste método propone localizar el punto de máxima potenica de forma aproximada mediante las ecuaciones:
+\begin{equation}
+i_{mpp} = 1 - \frac{D_M}{k_{oc}}
+\end{equation}
+\begin{equation}
+v_{mpp} = 1 - \frac{\ln(k_{oc}/D_M)}{k_{oc}}-r_s\cdot i_{mpp}
+\end{equation}
+
+donde:
+\begin{equation}
+D_M = D_{M0} + 2 \cdot r_s \cdot D_{M0}^2
+\end{equation}
+
+\begin{equation}
+D_{M0} = \frac{k_{oc}-1}{k_{oc} - \ln k_{oc}}
+\end{equation}
+
+En código el proceso a seguir para llegar a los dos valores de $i_{mpp}$ y $v_{mpp}$ es el siguiente:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $D_{M0}$}]
+	const DM0 = koc.map((kocArray, arrIndex) => {
+		return kocArray.map((kocValue, valIndex) => {
+			return (kocValue - 1) / (kocValue - Math.log(kocValue));
+		});
+	});
+\end{lstlisting} 
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $D_{M}$}]
+	const DM = DM0.map((DM0Array, arrIndex) => {
+		return DM0Array.map((DM0Value, valIndex) => {
+			return DM0Value + 2 * rs[arrIndex][valIndex] * Math.pow(DM0Value, 2);
+		});
+	});
+\end{lstlisting} 
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $i_{mpp}$}]
+	const impp = DM.map((DMArray, arrIndex) => {
+		return DMArray.map((DMValue, valIndex) => {
+			return 1 - DMValue / koc[arrIndex][valIndex];
+		});
+	});
+\end{lstlisting} 
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $v_{mpp}$}]
+	const vmpp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return 1 - Math.log(koc[arrIndex][valIndex] / 
+			DM[arrIndex][valIndex]) / koc[arrIndex][valIndex] - 
+			rs[arrIndex][valIndex] * imppValue;
+		});
+	});
+\end{lstlisting} 
+
+Por último, multiplicando los valores de $i_{mpp}$ y $v_{mpp}$ por $I_{sc}$ y $V_{oc}$ respectivamente, obtendremos los valores de $I_{mpp}$ y $V_{mpp}$ que serán los que utilizaremos para calcular la potencia entregada por el generador en el punto de máxima potencia.
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $V_{mpp}$ y $I_{mpp}$}]
+	const Vmpp = vmpp.map((vmppArray, arrIndex) => {
+		return vmppArray.map((vmppValue, valIndex) => {
+			return vmppValue * VocProfile[arrIndex][valIndex];
+		});
+	});
+	const Impp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return imppValue * IscProfile[arrIndex][valIndex];
+		});
+	});
+
+\end{lstlisting} 
+
