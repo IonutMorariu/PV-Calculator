@@ -1041,3 +1041,158 @@ Por último, multiplicando los valores de $i_{mpp}$ y $v_{mpp}$ por $I_{sc}$ y $
 
 \end{lstlisting} 
 
+Una vez calculados los valores de $I_{mpp}$ y $V_{mpp}$ podemos pasar a obtener los valores horarios de la potencia en el MPP, simplemente multiplicando los valores de corriente y tensión: $P_{mpp} = I_{mpp} \cdot V_{mpp}$.
+\newpage
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $P_{mpp}$}]
+	const calculatePmpp = (ImppProfile, VmppProfile) => {
+		const PmppProfile = ImppProfile.map((ImppArray, dayIndex) => {
+			const PmppArray = ImppArray.map((ImppValue, hourIndex) => {
+				return ImppValue * VmppProfile[dayIndex][hourIndex];
+			});
+			return PmppArray;
+		});
+		return PmppProfile;
+	};
+
+\end{lstlisting} 
+
+\subsubsection{Cálculo final de potencias y energías}
+
+La potencia que obtenemos es la de un solo módulo. Para conocer la potencia que va a ser capaz de entregar el generador, debemos tener en cuenta su configuración de módulos en serie y en paralelo, y multiplicar estos valores de la siguiente manera:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de la potencia del generador}]
+	const calculateGeneratorPower = (PmppProfile) => {
+		const PdcProfile = PmppProfile.map((PmppArray) => {
+			return PmppArray.map((PmppValue) => {
+				return PmppValue * generatordata.seriesModules * generatordata.parallelModules;
+			});
+		});
+		return PdcProfile;
+	};
+
+\end{lstlisting}
+
+Con este paso obtenemos la potencia horaria entregada por el generador fotovoltaico. El siguiente paso será pasar esa potencia a través del inversor y calcular la potencia a la salida de este. Para ello debemos llevar a cabo el siguiente desarrollo.
+
+Lo primero, establecemos las expresiones de las potencias normalizadas Siendo $P_{inv}$ la potencia nominal del inversor:
+\begin{equation}
+p_i = \frac{P_{DC}}{P_{inv}}
+\end{equation}
+
+\begin{equation}
+\label{eqn_p_o}
+p_o = \frac{P_{AC}}{P_{inv}}
+\end{equation}
+
+Para calcular la estos dos valores, utilizaremos un modelo empleado en inversores fotovoltaicos:
+\begin{equation}
+\eta_{inv} = \frac{p_o}{p_o + k_0 + k_1 p_o + k_2 p_o^2}
+\end{equation}
+donde: $k_0$, $k_1$ y $k_2$ son tres coeficientes ofrecidos por el fabricante del inversor.
+
+Por otro lado, por definición de rendimiento, tenemos:
+\begin{equation}
+\eta_{inv} = \frac{p_o}{p_i}
+\end{equation}
+
+Si despejamos las dos ecuaciones anteriores:
+\begin{equation}
+p_i = p_o + k_0 + k_1p_o + k_2p_o^2
+\end{equation}
+
+A partir de la expresión anterior obtenemos una ecuación de segundo grado con $p_o$ como incognita:
+\begin{equation}
+k_2p_o^2 + (k_1 + 1)p_o + (k_0 - p_i) = 0
+\end{equation}
+
+Y por último, si conocemos la $p_o$ podemos calcular la potencia en corriente alterna que entrega el generador:
+\begin{equation}
+P_{AC} = p_o \cdot p_{inv}
+\end{equation}
+
+En código, el desarrollo quedaría de la siguiente manera:
+
+\begin{enumerate}
+\item \textbf{Cálculo de $p_i$}: A partir de la potencia calculada anteriormente y conociendo la potencia del inversor, podemos calcular la $p_i$ de esta manera:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $p_i$}]
+const calculatePiProfile = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return PdcArray.map((PdcValue) => {
+			return PdcValue / inverterData.power;
+		});
+	});
+};
+\end{lstlisting}
+
+\item \textbf{Cálculo de $p_o$}: Utilizando $p_i$ podemos despejar la ecuación de segundo grado y calcular el valor de $p_o$ eligiendo la solución que cumpla que $p_o > 0$:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $p_o$}]
+const calculatePoProfile = (PiProfile) => {
+	return PiProfile.map((PiArray) => {
+		return PiArray.map((PiValue) => {
+			if (PiValue <= 0) {
+				return 0;
+			}
+			const a = inverterData.k2;
+			const b = inverterData.k1 + 1;
+			const c = inverterData.k0 - PiValue;
+			const s1 = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			const s2 = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			return s1 > 0 ? s1 : s2;
+		});
+	});
+};
+\end{lstlisting}
+
+\item \textbf{Cálculo de $P_{inv}$}: Habiendo calculado la $p_o$, podemos despejar la potencia generada por el generador ($P_{inv}$) de la ecuación \ref{eqn_p_o}:
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de $P_{AC}$}]
+const calculatePacProfile = (PoProfile) => {
+	return PoProfile.map((PoArray) => {
+		return PoArray.map((PoValue) => {
+			return PoValue * inverterData.power;
+		});
+	});
+};
+\end{lstlisting}
+
+
+Finalmente, conociendo las potencias en corriente continua y en alterna, podemos calcular la energía mensual y anual que es capaz de producir el generador configurado. Para ello, en el caso del balance mensual, sumaremos los 24 valores horario que hemos obtenido, y los multiplicaremos por 30. 
+
+Por otro lado, para calcular la energía anual, simplemente sumaremos los 12 valores de energía mensual que hemos calculado.
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de la energía mensual en alterna}]
+const calculateMonthlyEac = (PacProfile) => {
+	return PacProfile.map((PacArray) => {
+		return (
+			30 * PacArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+				EacCell.textContent = MonthlyEac[index];
+			}, 0))})};
+\end{lstlisting}
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de la energía mensual en continua}]
+const calculateMonthlyEdc = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return (
+			30 * PdcArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+			}, 0)
+		);
+	});
+};
+\end{lstlisting}
+
+\begin{lstlisting}[style=ES6, caption={Cálculo de la energía anual}]
+const calculateAnualEnergy = (MonthlyEnergy) => {
+	return MonthlyEnergy.reduce((total, currentValue) => {
+		return total + (currentValue > 0 ? currentValue : 0);
+	}, 0);
+};
+\end{lstlisting}
+
+
+
+\end{enumerate}
