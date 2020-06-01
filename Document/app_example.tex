@@ -1,0 +1,42 @@
+Una vez llevado a cabo el desarrollo teórico de la aplicación y los cálculos necesarios para llegar a los resultados deseados, el siguiente paso será aplicar estos a un emplazamiento concreto, observar los resultados obtenidos y analizarlos para sacar una conclusión.
+
+Éste capítulo también servirá como una guía detallada de uso de la aplicación, explicando la información a introducir en cada paso y como obtenerlos.
+
+La aplicación está disponible a través del enlace \url{http://solarcalc.app} para utilizarse de manera totalmente gratuita.
+
+\section{Obtención de datos del usuario}
+
+El formulario que se le presenta al usuario para que éste introduzca la información de su emplazamiento es el siguiente:
+\begin{figure}[ht]
+\includegraphics[scale=0.5]{USER_FORM}
+\centering
+\caption{Formulario web para obtención de datos}
+\label{fig:user_form}
+\end{figure}
+
+Como se puede observar, el formulario consta de dos partes, por un lado está la dirección como tal, que se utilizará para obtener las coordenadas del emplazamiento y por otro está la configuración física de la superficie destinada a la instalación de los paneles solares.
+
+\subsection{Latitud y longitud a partir de la dirección}
+
+La primera parte del formulario consiste en obtener la información acerca del emplazamiento del usuario, es decir, su latitud y longitud. Estos datos son los que se utilizarán en el código, para obtener la información de la radiación en dicho lugar.
+
+Para ello, el formulario pide una dirección, que no necesariamente tiene que ser la exacta del emplazamiento, sino que se puede utilizar una dirección genérica cercana al lugar donde se va a realizar la instalación, ya que para una distancia relativamente corta la radiación solar no variará de manera notable.
+
+En este caso práctico la dirección que utilizaremos será la de Guadalajara. Para ésta dirección, las coordenadas que Google nos devuelve son:
+\begin{itemize}
+\item \textbf{Latitud:} $40,632 \degree$.
+\item \textbf{Longitud:} $-3.166 \degree$.
+\end{itemize}
+
+\subsection{Datos de la superficie destinada a la instalación}
+
+Una vez obtenidas las coordenadas del emplazamiento, es necesario conocer la inclinación, la orientación y el nivel de suciedad de la superficie, para poder realizar el cambio de la radiación en el plano horizontal obtenida anteriormente a la radiación eficaz incidente.
+
+Para ello el formulario nos ofrece 4 campos de información:
+
+\begin{itemize}
+\item \textbf{Inclinación en grados:} Para obtener la inclinación de la superficie en grados se puede utilizar cualquier smartphone actual dotado con un sensor giroscópico y una aplicación de tipo nivel, algún dispositivo de medición de ángulos como un transportador.
+\item \textbf{Orientación:} Para la obtener la orientación de la superficie se puede utilizar una brújula, ya sea analógica o digital. Se considera que 0 grados es el SUR.
+\item \textbf{Área del tejado:} Simplemente el área que se desea cubrir con paneles solares.
+\item \textbf{Nivel de suciedad:} Este campo es el mas subjetivo y será a criterio del usuario. Se recomienda realizar cálculos con el peor caso para establecer un margen pero, no obstante, si se conoce con seguridad cuál es el nivel de suciedad de la zona, se ha de usar éste.
+\end{itemize}
