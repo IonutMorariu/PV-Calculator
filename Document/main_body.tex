@@ -61,6 +61,7 @@ const dirtLevel = document.querySelector('#dirt-level');
 \end{lstlisting}
 
 \section{Obtención de la irradiación global media en el plano horizontal}
+\label{section:get_global_rad}
 
 El primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo. En la sección anterior se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.\\
 
@@ -75,6 +76,7 @@ Una explicación detallada de como se ha realizado dicha descarga se incluye en 
 \section{Naturaleza de la radiación solar}
 
 \subsection{Radiación fuera de la atmósfera terrestre}
+\label{section:extra-irrad}
 La radiación emitida por el Sol atraviesa el espacio vacío en todas las dirección sin sufrir pérdidas a causa de la interacción con los medios material. Sin embargo, la irradiancia solar, que se define como la densidad de flujo radiante solar, se ve atenuada por el cuadrado de la distancia. Parte de esta irradiancia es interceptada por la Tierra. Dada la relación entre la distancia con el Sol y el tamaño de nuestro planeta, se puede asumir que su valor es constante en toda la superficie exterior de la atmósfera. El valor promedio de esta irradiancia, según varias campañas de medición es de $B_{0} = 1367 \frac{W}{m^2}$.
 
 Para calcular la irradiancia incidente en una superficie tangente a la atmosfera en una latitud, debemos tener en cuenta que la distancia entre la Tierra y el Sol varía a lo largo del año, debido a la excentricidad de la órbita elíptica que describe nuestro planeta. La ecuación para calcular dicho valor es:\\
@@ -93,13 +95,13 @@ Es posible demostrar que el promedio mensual de esta irradiación diaria coincid
 Estos doce días promedios son:
 
 \begin{table}[ht]
+\label{tab:dias_promedio}
 \centering
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
 \hline
 Mes   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sep & Oct & Nov & Dic \\ \hline
 $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 & 347  \\ \hline
 \end{tabular}
-\label{tab:dias_promedio}
 \caption{Dias promedio}
 \end{table}
 
@@ -182,6 +184,7 @@ Para expresar el lugar de incidencia caben las siguiente posibilidades:
 Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria (tiempo) en el plano horizontal (lugar), mientras que $G_{d,m}(I)$ se lee media mensual (período) de la irradiación global (forma) diaria (tiempo) en el plano generador (lugar).\\
 
 \section{Cálculo de componentes de radiación solar}
+\label{section:radiation_components}
 Partiendo de los datos obtenidos de la página de ADRASE, de radiación media mensual, debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
 
 Un esquema resumido del proceso se indica a continuación:

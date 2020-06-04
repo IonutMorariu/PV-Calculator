@@ -8,7 +8,7 @@ La aplicación está disponible a través del enlace \url{http://solarcalc.app} 
 
 El formulario que se le presenta al usuario para que éste introduzca la información de su emplazamiento es el siguiente:
 \begin{figure}[ht]
-\includegraphics[scale=0.5]{USER_FORM}
+\includegraphics[scale=0.4]{USER_FORM}
 \centering
 \caption{Formulario web para obtención de datos}
 \label{fig:user_form}
@@ -40,3 +40,54 @@ Para ello el formulario nos ofrece 4 campos de información:
 \item \textbf{Área del tejado:} Simplemente el área que se desea cubrir con paneles solares.
 \item \textbf{Nivel de suciedad:} Este campo es el mas subjetivo y será a criterio del usuario. Se recomienda realizar cálculos con el peor caso para establecer un margen pero, no obstante, si se conoce con seguridad cuál es el nivel de suciedad de la zona, se ha de usar éste.
 \end{itemize}
+
+\section {Aplicación de los datos al proceso de cálculo}
+
+En la sección anterior hemos recogido los datos que un usuario ha introducido a través del formulario. Estos datos son:
+\begin{itemize}
+\item \textbf{Latitud:} $40,632 \degree$.
+\item \textbf{Longitud:} $-3.166 \degree$.
+\item \textbf{Inclinación de la superficie:} $20 \degree$.
+\item \textbf{Área de la superficie:} $40 m^2 $.
+\item \textbf{Orientación de la superficie:} $30 \degree$.
+\item \textbf{Nivel de suciedad:} Medio.
+\end{itemize}
+
+A continuación, utilizaremos estos datos para recorrer numéricamente el proceso teórico descrito en el capítulo anterior. 
+
+\subsection{Valores medios mensuales de radiación global}
+
+Tal y como se menciona en la sección \ref{section:get_global_rad}, el primer paso para poder llevar a cabo el proceso de cálculo de la radiación incidente eficaz es obtener la radiación global media para cada uno de los doce meses, en el emplazamiento indicado por el usuario.
+
+Para las coordenadas introducidas por el usuario, el punto con información mas cercano que tenemos es de latitud  $40,57 \degree$ y longitud $-3.16 \degree$. 
+
+Para este punto, los valores de irradiación media son:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+$kWh/m^2$   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sept & Oct & Nov & Dic \\ \hline
+Valor medio & 2,0 & 3,1 & 4,8 & 5,7 & 6,8 & 8,0 & 7,8 & 6,8 & 5,1  & 3,5 & 2,2 & 1,7 \\ \hline
+\end{tabular}
+\label{tab:mean_values_monthly}
+\caption{Irradiación global media mensual}
+\end{table}
+
+\subsection{Irradiancia extra-terrestre diaria}
+
+Además, por otro lado, para poder continuar con el proceso de cálculo, es necesario calcular la irradiancia extra-terrestre diaria, utilizando la latitud indicada por el usuario y los días promedio de la tabla \ref{tab:dias_promedio}.
+En las ecuaciones de la sección \ref{section:extra-irrad} se indican los pasos a seguir y el resultado es:
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+$kW/m^2$   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sept & Oct & Nov & Dic \\ \hline
+$B_{0d}(0)$ & 3,65 & 5,03 & 7,10 & 9,35 & 10,93 & 11,59 & 11,29 & 9,84 & 7,73 & 5,48  & 3,83 & 3,21 \\ \hline
+\end{tabular}
+\label{tab:extra_irrad_values}
+\caption{Irradiancia extra-terrestre diaria}
+\end{table}
+
+\subsection{Separación de la radiación global en sus componentes}
+
+Una vez conocidos los valores mensuales de la radiación global en el plano horizontal, el siguiente paso se centra en separar la radiación global en sus dos componentes, la directa y la difusa, tal y como se explica en la sección \ref{section:radiation_components}.
