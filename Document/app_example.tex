@@ -82,12 +82,104 @@ En las ecuaciones de la sección \ref{section:extra-irrad} se indican los pasos 
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
 \hline
 $kW/m^2$   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sept & Oct & Nov & Dic \\ \hline
-$B_{0d}(0)$ & 3,65 & 5,03 & 7,10 & 9,35 & 10,93 & 11,59 & 11,29 & 9,84 & 7,73 & 5,48  & 3,83 & 3,21 \\ \hline
+$B_{0d}(0)$ & 4,12 & 5,48 & 7,47 & 9,57 & 11,01 & 11,59 & 11,26 & 10,01 & 8,05 & 5,90  & 4,30 & 3,58 \\ \hline
 \end{tabular}
 \label{tab:extra_irrad_values}
 \caption{Irradiancia extra-terrestre diaria}
 \end{table}
 
-\subsection{Separación de la radiación global en sus componentes}
+\subsection{Separación de la radiación global horizontal en sus componentes}
 
 Una vez conocidos los valores mensuales de la radiación global en el plano horizontal, el siguiente paso se centra en separar la radiación global en sus dos componentes, la directa y la difusa, tal y como se explica en la sección \ref{section:radiation_components}.
+
+Como podemos observar en la ecuación \ref{eqn:ktd}, el primer paso para separar la irradiación global en sus dos componentes es calcular el índice de claridad, para que posteriormente calculemos la fracción de radiación difusa. 
+\newpage
+
+Si aplicamos dicha ecuación a los resultados anteriores obtenemos los siguiente resultados:
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+    & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sept & Oct & Nov & Dic \\ \hline
+$K_{Td}$ & 0,485 & 0,565 & 0,642 & 0,595 & 0,617 & 0,690 & 0,692 & 0,679 & 0,632 & 0,592 & 0,511  & 0,461  \\ \hline
+\end{tabular}
+\label{tab:clarity_index}
+\caption{Índice de claridad}
+\end{table}
+
+A continuación, utilizando la ecuación de Page \ref{eqn:page}, con el índice de claridad calculado, podemos calcular la fracción de difusa:
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+   		& Ene   & Feb   & Mar   & Abr   & May   & Jun   & Jul   & Ago   & Sept  & Oct   & Nov    & Dic    \\ \hline
+$F_{D}$ & 0,452 & 0,361 & 0,274 & 0,327 & 0,302 & 0,220 & 0,218 & 0,232 & 0,285 & 0,330 & 0,421  & 0,478  \\ \hline
+\end{tabular}
+\label{tab:difuse_part}
+\caption{Fracción de difusa}
+\end{table}
+
+Con estos valores, utilizando las ecuaciones \ref{eqn:rad_difusa} y \ref{eqn:rad_directa} podemos obtener las dos componentes de la radiación en el plan horizontal.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+$kWh/m^2$  & Ene   & Feb   & Mar   & Abr   & May   & Jun   & Jul   & Ago   & Sept  & Oct   & Nov    & Dic    \\ \hline
+$B_{d}(0)$ & 1,096 & 1,980 & 3,484 & 3,835 & 4,745 & 6,239 & 6,103 & 5,220 & 3,647 & 2,344 & 1,272  & 0,886  \\ \hline
+$D_{d}(0)$ & 0,904 & 1,120 & 1,316 & 1,865 & 2,055 & 1,761 & 1,697 & 1,580 & 1,453 & 1,156 & 0,928  & 0,814  \\ \hline
+\end{tabular}
+\label{tab:rad_components}
+\caption{Irradiación directa y difusa en el plano horizontal}
+\end{table}
+
+\subsection{Irradiancia en la superficie inclinada}
+
+\subsubsection{Irradiancia en el plano horizontal}
+Conociendo ya los valores diarios de la radiación directa y difusa en el plano horizontal, el próximo paso es obtener los valores horarios de irradiancia, tanto directa como difusa, en el plano horizontal para poder llevar a cabo posteriormente, la traslación de estos valores al plano inclinado.El proceso se describe detalladamente en las secciones \ref{section:3.5.1} y \ref{section:3.5.2}.
+
+Al tratarse de 24 valores horarios, para cada uno de los 12 meses, en total tendríamos 288 valores. Por tanto, y con el fin de no saturar este documento con demasiado valores, se van a indicar los resultados de solamente uno de los meses, en concreto de julio. Estos resultados se muestran en la tabla \ref{tab:hourly_horizontal_values}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+ &
+  \multicolumn{1}{c|}{$r_D$} &
+  \multicolumn{1}{c|}{$r_G$} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$B_h$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D_h$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$G_h$\\ ($kW/m^2$)\end{tabular}} \\ \hline
+-12 & -0,056 & -0,027 & 0     & 0     & 0     \\ \hline
+-11 & -0,053 & -0,026 & 0     & 0     & 0     \\ \hline
+-10 & -0,045 & -0,024 & 0     & 0     & 0     \\ \hline
+-9  & -0,031 & -0,018 & 0     & 0     & 0     \\ \hline
+-8  & -0,014 & -0,009 & 0     & 0     & 0     \\ \hline
+-7  & 0,006  & 0,004  & 0,022 & 0,010 & 0,032 \\ \hline
+-6  & 0,027  & 0,022  & 0,122 & 0,047 & 0,169 \\ \hline
+-5  & 0,049  & 0,042  & 0,248 & 0,083 & 0,331 \\ \hline
+-4  & 0,069  & 0,065  & 0,388 & 0,117 & 0,506 \\ \hline
+-3  & 0,086  & 0,086  & 0,527 & 0,146 & 0,673 \\ \hline
+-2  & 0,099  & 0,104  & 0,645 & 0,169 & 0,814 \\ \hline
+-1  & 0,108  & 0,116  & 0,724 & 0,183 & 0,907 \\ \hline
+0   & 0,111  & 0,121  & 0,752 & 0,188 & 0,940 \\ \hline
+1   & 0,108  & 0,116  & 0,724 & 0,183 & 0,907 \\ \hline
+2   & 0,099  & 0,104  & 0,645 & 0,169 & 0,814 \\ \hline
+3   & 0,086  & 0,086  & 0,527 & 0,146 & 0,673 \\ \hline
+4   & 0,069  & 0,065  & 0,388 & 0,117 & 0,506 \\ \hline
+5   & 0,049  & 0,042  & 0,248 & 0,083 & 0,331 \\ \hline
+6   & 0,027  & 0,022  & 0,122 & 0,047 & 0,169 \\ \hline
+7   & 0,006  & 0,004  & 0,022 & 0,010 & 0,032 \\ \hline
+8   & -0,014 & -0,009 & 0     & 0     & 0     \\ \hline
+9   & -0,031 & -0,018 & 0     & 0     & 0     \\ \hline
+10  & -0,045 & -0,024 & 0     & 0     & 0     \\ \hline
+11  & -0,053 & -0,026 & 0     & 0     & 0     \\ \hline
+\end{tabular}
+\caption{Irradiancia directa, difusa y global en el plano horizontal para el día promedio del mes de julio \label{tab:hourly_horizontal_values}}
+\end{table}
+
+\subsubsection{Traslación de los valores al plano horizontal}
+
+Una vez obtenidos los valores horarios en el plano horizontal, podemos trasladar estos al plano inclinado con el proceso descrito de la ecuación \ref{eqn:B_beta_alpha} hasta la ecuación \ref{eqn:ang_incid}.

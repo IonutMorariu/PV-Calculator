@@ -80,13 +80,13 @@ Una explicación detallada de como se ha realizado dicha descarga se incluye en 
 La radiación emitida por el Sol atraviesa el espacio vacío en todas las dirección sin sufrir pérdidas a causa de la interacción con los medios material. Sin embargo, la irradiancia solar, que se define como la densidad de flujo radiante solar, se ve atenuada por el cuadrado de la distancia. Parte de esta irradiancia es interceptada por la Tierra. Dada la relación entre la distancia con el Sol y el tamaño de nuestro planeta, se puede asumir que su valor es constante en toda la superficie exterior de la atmósfera. El valor promedio de esta irradiancia, según varias campañas de medición es de $B_{0} = 1367 \frac{W}{m^2}$.
 
 Para calcular la irradiancia incidente en una superficie tangente a la atmosfera en una latitud, debemos tener en cuenta que la distancia entre la Tierra y el Sol varía a lo largo del año, debido a la excentricidad de la órbita elíptica que describe nuestro planeta. La ecuación para calcular dicho valor es:\\
-\begin{equation}\label{eqn_B00}
+\begin{equation}\label{eqn:B00}
 B_0(0) = B_0\epsilon_0\cos\theta_{zs}
 \end{equation}\\
 
 
-Es importante resaltar que el valor de la irradiancia extra-atmosférica o extra-terrestre solo requiere consideraciones atmosféricas. Así, integrando la ecuación \ref{eqn_B00}, podemos calcular la irradiación diaria extra-terrestre con la ecuación obtenida:\\
-\begin{equation}\label{eqn_B0d0}
+Es importante resaltar que el valor de la irradiancia extra-atmosférica o extra-terrestre solo requiere consideraciones atmosféricas. Así, integrando la ecuación \ref{eqn:B00}, podemos calcular la irradiación diaria extra-terrestre con la ecuación obtenida:\\
+\begin{equation}\label{eqn:B0d0}
 B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\cos\delta\sin\omega_s)
 \end{equation}\\
 
@@ -134,7 +134,7 @@ Para el calculo del cenit solar, hay que tener en cuenta que varía en función 
 \end{lstlisting}
 \end{itemize}
 
-Aplicando estos cálculos a la ecuación \ref{eqn_B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$ con la siguiente expresión:
+Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$ con la siguiente expresión:
 \begin{lstlisting}[style=ES6, caption={Equación para B0d0}]
 		const B0d0 =
 			-(24 / Math.PI) *
@@ -213,6 +213,7 @@ Para poder calcular la energía producida por un generador fotovoltaico, es nece
 En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice es la relación entre la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
 
 \begin{equation}
+\label{eqn:ktd}
 K_{Td} = \frac{G_d(0)}{B_{0d}(0)}
 \end{equation}
 mientras que el indice de claridad mensual es la relación entre las medias mensuales de irradiación diaria:
@@ -231,7 +232,7 @@ Para cada uno de los valores medios mensuales, dividimos el valor de radiación 
 Habiendo calculado el índice de claridad, podemos utilizar su valor para calcular la Fracción de radiación difusa en el plano horizontal ($F_D=\frac{D(0)}{G(0)}$). Para ello, podemos utilizar la ecuación de Page para aproximar el dicho valor conociendo el índice de claridad.
 
 La ecuación que define éste valor es:
-\begin{equation}\label{eqn_page}
+\begin{equation}\label{eqn:page}
 F_{Dm}=1-1,13·K_{Tm}
 \end{equation}
 En código, la expresión es:
@@ -245,11 +246,13 @@ Donde elem.Ktd es el índice de claridad calculado en el paso anterior.
 Al conocer, mediante la ecuación de Page el valor de la fracción de radiación difusa, podemos aplicar dicha relación para calcular los valores de radiación directa y difusa en el plano horizontal, a partir de la radiación global.
 Las dos ecuaciones necesarias para calcular estos valores son:
 
-\begin{equation}\label{eqn_rad_directa}
+\begin{equation}
+\label{eqn:rad_difusa}
 D_d(0) = F_D · G_d(0)
 \end{equation}
 
-\begin{equation}\label{eqn_rad_directa}
+\begin{equation}
+\label{eqn:rad_directa}
 B_d(0) = G_d(0) - D_d(0)
 \end{equation}
 
@@ -265,12 +268,13 @@ Para cada uno de los doce valores de radiación global media, aplicamos la fracc
 
 \section{Radiación en superficies inclinadas}
 
-Para poder obtener los valores de de irradiación global en un plano inclinado a partir de valores de irradiación global en el plano horizontal se describe en la figura \ref{fig:fig_1}. El proceso de cálculo parte de los valores de irradiación global diaria en el plano horizontal, o en el caso de no tener estos valores disponibles, podemos utilizar la ecuación \ref{eqn_page} para obtener las respectivas medias mensuales de irradiación difusa y directa en el plano horizontal.
+Para poder obtener los valores de de irradiación global en un plano inclinado a partir de valores de irradiación global en el plano horizontal se describe en la figura \ref{fig:fig_1}. El proceso de cálculo parte de los valores de irradiación global diaria en el plano horizontal, o en el caso de no tener estos valores disponibles, podemos utilizar la ecuación \ref{eqn:page} para obtener las respectivas medias mensuales de irradiación difusa y directa en el plano horizontal.
 A continuación, para poder llevar a cabo las transformaciones al plano inclinado, debemos estimar los valores de irradiancia difusa, directa y global en el plano horizontal. Con estas estimaciones podemos calcular los valores correspondientes al plano inclinado.
 
 Integrando los valores de irradiancia se obtienen las estimaciones de irradiación diaria difusa, directa y global en el plano horizontal. A estos valores les aplicaremos las pérdidas por suciedad, añadiéndole el apellido de ``efectiva`` a la irradiancia e irradiación. Será esta irradiación incidente efectiva la que se utilizará para el calculo de la energía producida por el generador.
 
 \subsection{Estimación de irradiancia a partir de irradiación diaria}
+\label{section:3.5.1}
 Partiendo de los valores calculados anteriormente de irradiación diaria difusa, directa y global en el plano horizontal, podemos realizar la transformación al plano inclinado estimando el perfil de irradiancia correspondiente a cada valor de irradiación.
 
 Como la variación solar durante una hora es relativamente baja, podemos suponer que el valor medio de irradiancia durante esa hora coincide numéricamente con irradiación horaria ($ \frac{kWh}{m^2}$).
@@ -334,6 +338,7 @@ En código, los expresiones anteriores se representan de la siguiente forma:
 \end{lstlisting}
 
 \subsection{Transformación al plano del generador}
+\label{section:3.5.2}
 
 Una vez calculados los valores de irradiancia en el plano horizontal, el siguiente paso consiste en estimar los componentes de irradiancia en el plano del generador. La irradiancia directa es calculable mediante criterios geométricos, teniendo en cuenta el ángulo del cenit solar y el ángulo de incidencia en el generador.\\
 
@@ -347,7 +352,7 @@ D_h = r_D \cdot D_d(0)
 G_h = r_G \cdot G(0)
 \end{equation}
 \begin{equation}
-G_h = G_h - D_h
+B_h = G_h - D_h
 \end{equation}
 
 En código, las expresiones serían las siguientes:
@@ -385,6 +390,7 @@ El planteamiento de ésta transición es el siguiente:
 \begin{itemize}
 \item \textbf{Irradiancia Directa $B(\beta,\alpha)$:} ecuación basada en geometría solar (ángulo cenital) y del generador(ángulo de incidencia).
 \begin{equation}
+\label{eqn:B_beta_alpha}
 B(\beta,\alpha) = B(0) \cdot \frac{max(0,\cos(\theta_s))}{\cos(\theta_{zs})}
 \end{equation}
 \item \textbf{Irradiancia Directa $D(\beta,\alpha)$:} Existen dos modelos del estado de cielo, el isotrópico y el anisotrópico. En este caso, utilizaremos el modelo anisotrópico.
@@ -406,7 +412,7 @@ G(\beta,\alpha)=D(\beta,\alpha)+B(\beta,\alpha)+R(\beta,\alpha)
 \end{equation}
 
 En la ecuación de la irradiancia directa, uno de los elementos que influyen en el cálculo es el angulo de incidencia, cuya expresión es:
-\begin{equation} \label{eqn_ang_incid}
+\begin{equation} \label{eqn:ang_incid}
 \begin{split}
 \cos(\theta_s)=sign(\phi)\cdot [ \sin(\beta)\cos(\alpha)\cos(\delta)\sin(\phi)- \\
 -\sin(\beta)\cos(\alpha)\cos(\phi)\sin(\delta)]+ \\
@@ -476,7 +482,7 @@ Con estos cálculos obtenemos la irradiancia global incidente, es decir, en el p
 
 \subsection{Pérdidas por ángulo de incidencia y suciedad}
 
-Al tratarse de sistemas estáticos, la radiación incidente en un módulo fotovoltaico está frecuentemente desviada de la normal a la superficie del módulo. Esta desviación, cuantificada por el ángulo de incidencia [eq. \ref{eqn_ang_incid}], es causa de pérdidas por reflexión.
+Al tratarse de sistemas estáticos, la radiación incidente en un módulo fotovoltaico está frecuentemente desviada de la normal a la superficie del módulo. Esta desviación, cuantificada por el ángulo de incidencia [eq. \ref{eqn:ang_incid}], es causa de pérdidas por reflexión.
 
 Por otro lado, la suciedad acumulada en la superficie del módulo altera las propiedades angulares del mismo y reduce la capacidad de transmisión del vidrio.
 
@@ -674,7 +680,7 @@ En el punto de máxima potencia se cumplirá:
 
 Como se puede observar en la figura \ref{fig:mpp}, el área encerrada por el rectángulo $I_{mpp}\cdot V_{mpp}$ es inferior al definido por $I_{sc} \cdot V_{oc}$. La relación entre estas dos áreas, se conoce como factor de forma, y toma la siguiente expresión:
 \begin{equation}
-\label{eqn_FF}
+\label{eqn:FF}
 FF = \frac{I_{mpp} \cdot V_{mpp}}{I_{sc} \cdot V_{oc}}
 \end{equation}
 
@@ -733,12 +739,12 @@ I_m = I_{sc} \cdot \left( 1 - exp \left(\frac{V_m - V_{oc} + I_m \cdot R_s}{Vt}\
 
 Supondremos que la corriente de cortocircuito depende exclusivamente y de forma linea de la irradiancia:
 \begin{equation}
-\label{eqn_I_sc}
+\label{eqn:I_sc}
 I_sc = G_{ef} \cdot \frac{I_{sc}^*}{G_{stc}}
 \end{equation}
 y la tensión de circuito abierto depende exclusivamente de la temperatura de célula, y decrece linealmente con ella:
 \begin{equation}
-\label{eqn_V_oc}
+\label{eqn:V_oc}
 V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c}
 \end{equation}
 
@@ -765,7 +771,7 @@ Todos estos factores quedan recogidos en un valor único representado por la tem
 \end{itemize}
 
 \begin{equation}
-\label{eqn_T_c}
+\label{eqn:T_c}
 T_c = T_a + \frac{G_{ef}\cdot(TONC - 20)}{800}
 \end{equation}
 
@@ -859,7 +865,7 @@ En código, todo este proceso toma la siguiente forma:
 	}
 \end{lstlisting}
 
-Habiendo obtenido la matriz de temperatura ambiente, el siguiente paso es utilizar estos valores para calcular la temperatura de la célula $T_c$ con la ecuación \ref{eqn_T_c} necesaria para calcular la tensión de circuito abierto $V_{oc}$.
+Habiendo obtenido la matriz de temperatura ambiente, el siguiente paso es utilizar estos valores para calcular la temperatura de la célula $T_c$ con la ecuación \ref{eqn:T_c} necesaria para calcular la tensión de circuito abierto $V_{oc}$.
 \newpage
 En código sería:
 \begin{lstlisting}[style=ES6, caption={Cálculo de la temperatura de célula}]
@@ -876,9 +882,9 @@ En código sería:
 
 Como se observa en el código, para cada uno de los valores horarios utilizamos la $G_{ef}$ en el plano inclinado (en el código aparece como \textit{Gtilt}) y la temperatura ambiente calculada anteriormente ( en el código es \textit{temp} ) para calcular la $T_c$.
 
-Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn_V_oc_cs} que, como se puede observar es la misma que \ref{eqn_V_oc} pero añadiendo el número de células en serie para convertirlo a tensión del módulo
+Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn:V_oc_cs} que, como se puede observar es la misma que \ref{eqn:V_oc} pero añadiendo el número de células en serie para convertirlo a tensión del módulo
 \begin{equation}
-\label{eqn_V_oc_cs}
+\label{eqn:V_oc_cs}
 V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c} \cdot N_{cs}
 \end{equation}
 que en código quedaría de la siguiente forma:
@@ -894,7 +900,7 @@ que en código quedaría de la siguiente forma:
 
 \end{lstlisting}
 \newpage
-Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$ que depende linealmente del valor de irradiancia según se indica en la expresión \ref{eqn_I_sc} que en código resulta de la siguiente forma:
+Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$ que depende linealmente del valor de irradiancia según se indica en la expresión \ref{eqn:I_sc} que en código resulta de la siguiente forma:
 
 \begin{lstlisting}[style=ES6, caption={Cálculo de la corriente de cortocircuito}]
 	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
@@ -908,7 +914,7 @@ Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$
 
 \subsubsection{Factor de forma variable}
 
-Los cálculos anteriores se han realizado suponiendo que el factor de forma $FF$ es constante, por tanto, de la expresión \ref{eqn_FF}, si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
+Los cálculos anteriores se han realizado suponiendo que el factor de forma $FF$ es constante, por tanto, de la expresión \ref{eqn:FF}, si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
 \begin{equation}
 FF = FF^*
 \end{equation}
@@ -1084,7 +1090,7 @@ p_i = \frac{P_{DC}}{P_{inv}}
 \end{equation}
 
 \begin{equation}
-\label{eqn_p_o}
+\label{eqn:p_o}
 p_o = \frac{P_{AC}}{P_{inv}}
 \end{equation}
 
@@ -1149,7 +1155,7 @@ const calculatePoProfile = (PiProfile) => {
 };
 \end{lstlisting}
 
-\item \textbf{Cálculo de $P_{inv}$}: Habiendo calculado la $p_o$, podemos despejar la potencia generada por el generador ($P_{inv}$) de la ecuación \ref{eqn_p_o}:
+\item \textbf{Cálculo de $P_{inv}$}: Habiendo calculado la $p_o$, podemos despejar la potencia generada por el generador ($P_{inv}$) de la ecuación \ref{eqn:p_o}:
 
 \begin{lstlisting}[style=ES6, caption={Cálculo de $P_{AC}$}]
 const calculatePacProfile = (PoProfile) => {
