@@ -188,39 +188,166 @@ Una vez obtenidos los valores horarios en el plano horizontal, podemos trasladar
 \centering
 \begin{tabular}{|c|r|r|r|r|r|}
 \hline
-kW/m^2 &
+ &
   \multicolumn{1}{c|}{$B(\beta, \alpha)$} &
   \multicolumn{1}{c|}{$D^C(\beta, \alpha)$} &
   \multicolumn{1}{c|}{$D^I(\beta, \alpha)$} &
   \multicolumn{1}{c|}{$D(\beta, \alpha)$} &
   \multicolumn{1}{c|}{$G(\beta, \alpha)$} \\ \hline
--12 & 0     & 0     & 0     & 0     & 0      \\ \hline
--11 & 0     & 0     & 0     & 0     & 0      \\ \hline
--10 & 0     & 0     & 0     & 0     & 0      \\ \hline
--9  & 0     & 0     & 0     & 0     & 0      \\ \hline
--8  & 0     & 0     & 0     & 0     & 0      \\ \hline
--7  & 0     & 0     & 0,006 & 0,006 & 0,006  \\ \hline
--6  & 0     & 0     & 0,025 & 0,025 & 0,025  \\ \hline
--5  & 0,076 & 0,011 & 0,041 & 0,052 & 0,128  \\ \hline
--4  & 0,243 & 0,037 & 0,052 & 0,089 & 0,3314 \\ \hline
--3  & 0,422 & 0,064 & 0,059 & 0,123 & 0,545  \\ \hline
--2  & 0,583 & 0,088 & 0,064 & 0,152 & 0,735  \\ \hline
--1  & 0,704 & 0,106 & 0,066 & 0,172 & 0,8767 \\ \hline
-0   & 0,770 & 0,116 & 0,066 & 0,182 & 0,952  \\ \hline
-1   & 0,771 & 0,116 & 0,066 & 0,182 & 0,953  \\ \hline
-2   & 0,708 & 0,106 & 0,064 & 0,170 & 0,879  \\ \hline
-3   & 0,593 & 0,089 & 0,059 & 0,149 & 0,742  \\ \hline
-4   & 0,443 & 0,067 & 0,052 & 0,119 & 0,562  \\ \hline
-5   & 0,277 & 0,042 & 0,041 & 0,082 & 0,349  \\ \hline
-6   & 0,119 & 0,018 & 0,025 & 0,043 & 0,162  \\ \hline
-7   & 0,010 & 0,001 & 0,006 & 0,007 & 0,017  \\ \hline
-8   & 0     & 0     & 0     & 0     & 0      \\ \hline
-9   & 0     & 0     & 0     & 0     & 0      \\ \hline
-10  & 0     & 0     & 0     & 0     & 0      \\ \hline
-11  & 0     & 0     & 0     & 0     & 0      \\ \hline
+-12 & 0     & 0     & 0     & 0     & 0     \\ \hline
+-11 & 0     & 0     & 0     & 0     & 0     \\ \hline
+-10 & 0     & 0     & 0     & 0     & 0     \\ \hline
+-9  & 0     & 0     & 0     & 0     & 0     \\ \hline
+-8  & 0     & 0     & 0     & 0     & 0     \\ \hline
+-7  & 0     & 0     & 0,006 & 0,006 & 0,006 \\ \hline
+-6  & 0     & 0     & 0,027 & 0,027 & 0,027 \\ \hline
+-5  & 0,12  & 0,018 & 0,044 & 0,062 & 0,184 \\ \hline
+-4  & 0,280 & 0,042 & 0,057 & 0,099 & 0,379 \\ \hline
+-3  & 0,448 & 0,067 & 0,065 & 0,132 & 0,580 \\ \hline
+-2  & 0,603 & 0,091 & 0,069 & 0,160 & 0,763 \\ \hline
+-1  & 0,721 & 0,108 & 0,072 & 0,180 & 0,901 \\ \hline
+0   & 0,786 & 0,118 & 0,072 & 0,190 & 0,977 \\ \hline
+1   & 0,787 & 0,119 & 0,072 & 0,191 & 0,978 \\ \hline
+2   & 0,724 & 0,109 & 0,070 & 0,179 & 0,903 \\ \hline
+3   & 0,610 & 0,092 & 0,065 & 0,156 & 0,767 \\ \hline
+4   & 0,463 & 0,069 & 0,057 & 0,127 & 0,589 \\ \hline
+5   & 0,304 & 0,046 & 0,044 & 0,090 & 0,394 \\ \hline
+6   & 0,156 & 0,023 & 0,027 & 0,050 & 0,206 \\ \hline
+7   & 0,033 & 0,005 & 0,006 & 0,011 & 0,044 \\ \hline
+8   & 0     & 0     & 0     & 0     & 0     \\ \hline
+9   & 0     & 0     & 0     & 0     & 0     \\ \hline
+10  & 0     & 0     & 0     & 0     & 0     \\ \hline
+11  & 0     & 0     & 0     & 0     & 0     \\ \hline
 \end{tabular}
 \caption{Irradiancia directa, difusa y global en el plano inclinado, para el día promedio del mes de julio \label{tab:hourly_tilted_values}}
 \end{table}
 \newpage
 
 Como se  puede observar, a diferencia de la irradiancia en el plano horizontal, estos resultados no son simétricos respecto al mediodía ya que ahora está afectando la orientación de la superficie, que no está orientada totalmente hacia el sur.
+
+\subsection{Pérdidas por ángulo de incidencia y suciedad}
+
+Habiendo calculado los valores de irradiancia horaria en la superficie inclinada, el siguiente paso consiste en aplicar las pérdidas por ángulo de incidencia y suciedad, mediante el proceso descrito en la sección \ref{section:3.5.3}. Los resultados del proceso se muestran en la tabla \ref{tab:hourly_tilted_ef_values}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|r|r|r|r|r|}
+\hline
+kW/m^2 &
+  \multicolumn{1}{c|}{$B_{ef}(\beta, \alpha)$} &
+  \multicolumn{1}{c|}{$D^C_{ef}(\beta, \alpha)$} &
+  \multicolumn{1}{c|}{$D^I_{ef}(\beta, \alpha)$} &
+  \multicolumn{1}{c|}{$D_{ef}(\beta, \alpha)$} &
+  \multicolumn{1}{c|}{$G_{ef}(\beta, \alpha)$} \\ \hline
+-12 & 0     & 0     & 0     & 0     & 0        \\ \hline
+-11 & 0     & 0     & 0     & 0     & 0        \\ \hline
+-10 & 0     & 0     & 0     & 0     & 0        \\ \hline
+-9  & 0     & 0     & 0     & 0     & 0        \\ \hline
+-8  & 0     & 0     & 0     & 0     & 0        \\ \hline
+-7  & 0     & 0     & 0,006 & 0,006 & 0,006    \\ \hline
+-6  & 0     & 0     & 0,025 & 0,025 & 0,025    \\ \hline
+-5  & 0,076 & 0,011 & 0,041 & 0,052 & 0,128    \\ \hline
+-4  & 0,243 & 0,037 & 0,052 & 0,089 & 0,3314   \\ \hline
+-3  & 0,422 & 0,064 & 0,059 & 0,123 & 0,545    \\ \hline
+-2  & 0,583 & 0,088 & 0,064 & 0,152 & 0,735    \\ \hline
+-1  & 0,704 & 0,106 & 0,066 & 0,172 & 0,8767   \\ \hline
+0   & 0,770 & 0,116 & 0,066 & 0,182 & 0,952    \\ \hline
+1   & 0,771 & 0,116 & 0,066 & 0,182 & 0,953    \\ \hline
+2   & 0,708 & 0,106 & 0,064 & 0,170 & 0,879    \\ \hline
+3   & 0,593 & 0,089 & 0,059 & 0,149 & 0,742    \\ \hline
+4   & 0,443 & 0,067 & 0,052 & 0,119 & 0,562    \\ \hline
+5   & 0,277 & 0,042 & 0,041 & 0,082 & 0,349    \\ \hline
+6   & 0,119 & 0,018 & 0,025 & 0,043 & 0,162    \\ \hline
+7   & 0,010 & 0,001 & 0,006 & 0,007 & 0,017    \\ \hline
+8   & 0     & 0     & 0     & 0     & 0        \\ \hline
+9   & 0     & 0     & 0     & 0     & 0        \\ \hline
+10  & 0     & 0     & 0     & 0     & 0        \\ \hline
+11  & 0     & 0     & 0     & 0     & 0        \\ \hline
+\end{tabular}
+\caption{Irradiancia  directa, difusa y global eficaz incidente en el plano inclinado, para el día promedio del mes de julio \label{tab:hourly_tilted_ef_values}}
+\end{table}
+
+Como se puede apreciar, los valores eficaces son ligeramente inferiores al aplicar las pérdidas por el nivel de suciedad medio y el ángulo de incidencia.
+
+\subsection{Configuración del módulo solar y su comportamiento}
+
+La primera parte del proceso de cálculo está completada, teniendo ya los valores eficaces de irradiancia horaria para cada uno de los 12 días promedio.
+
+La segunda parte consiste en aplicar dicha radiación a un módulo para estimar la potencia máxima que será capaz de entregar, así como la energía que producirá al cabo de un año.
+
+Para ello, tal y como se describe en el desarrollo teórico, debemos calcular la potencia en el punto de máxima potencia con las condiciones de temperatura y radiación del emplazamiento. Como ya tenemos los datos de radiación, a continuación calcularemos el perfil horario de temperatura como se describe en la sección de la página \pageref{section:term_behaviour}.
+
+El resultado de ese proceso, para las coordenadas indicadas por el usuario se muestran en las tablas \ref{tab:temp_min_max} y \ref{tab:temp_profiles}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline
+$\degree C$ &
+  \multicolumn{1}{c|}{Ene} &
+  \multicolumn{1}{c|}{Feb} &
+  \multicolumn{1}{c|}{Mar} &
+  \multicolumn{1}{c|}{Abr} &
+  \multicolumn{1}{c|}{May} &
+  \multicolumn{1}{c|}{Jun} &
+  \multicolumn{1}{c|}{Jul} &
+  \multicolumn{1}{c|}{Ago} &
+  \multicolumn{1}{c|}{Sept} &
+  \multicolumn{1}{c|}{Oct} &
+  \multicolumn{1}{c|}{Nov} &
+  \multicolumn{1}{c|}{Dic} \\ \hline
+$T_{min}$ & 0,7 & 2,6 & 5,8 & 8,9 & 11,8 & 17,5 & 22,4 & 18,6 & 14,1 & 10,8 & 6,8 & 4,9 \\ \hline
+$T_{max}$ & 11,4 & 10,6 & 17,1 & 20,3 & 27 & 31,1 & 36,4 & 32,3 & 26,4 & 20,3 & 17,5 & 14,2 \\ \hline
+\end{tabular}
+\caption{Perfil de temperaturas en las coordenadas del emplazamiento según el método descrito en \cite{temp_paper} \label{tab:temp_min_max}}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline
+$\degree C$ &
+  \multicolumn{1}{c|}{Ene} &
+  \multicolumn{1}{c|}{Feb} &
+  \multicolumn{1}{c|}{Mar} &
+  \multicolumn{1}{c|}{Abr} &
+  \multicolumn{1}{c|}{May} &
+  \multicolumn{1}{c|}{Jun} &
+  \multicolumn{1}{c|}{Jul} &
+  \multicolumn{1}{c|}{Ago} &
+  \multicolumn{1}{c|}{Sept} &
+  \multicolumn{1}{c|}{Oct} &
+  \multicolumn{1}{c|}{Nov} &
+  \multicolumn{1}{c|}{Dic} \\ \hline
+0  & 1,05  & 3,14  & 7,19  & 11,04 & 15,46 & 21,13 & 25,96 & 21,43 & 15,86 & 11,57 & 7,21  & 5,11  \\ \hline
+1  & 1,16  & 3,25  & 7,36  & 11,23 & 15,73 & 21,37 & 26,21 & 21,66 & 16,06 & 11,70 & 7,32  & 5,19  \\ \hline
+2  & 1,56  & 3,60  & 7,93  & 11,84 & 16,54 & 22,09 & 26,95 & 22,39 & 16,69 & 12,14 & 7,73  & 5,51  \\ \hline
+3  & 2,41  & 4,29  & 8,96  & 12,88 & 17,91 & 23,30 & 28,20 & 23,64 & 17,81 & 12,97 & 8,59  & 6,21  \\ \hline
+4  & 3,83  & 5,37  & 10,46 & 14,34 & 19,76 & 24,91 & 29,89 & 25,37 & 19,43 & 14,26 & 10,03 & 7,44  \\ \hline
+5  & 5,77  & 6,77  & 12,31 & 16,05 & 21,89 & 26,75 & 31,81 & 27,37 & 21,39 & 15,88 & 11,95 & 9,14  \\ \hline
+6  & 7,88  & 8,23  & 14,18 & 17,74 & 23,94 & 28,50 & 33,65 & 29,34 & 23,36 & 17,58 & 14,04 & 11,02 \\ \hline
+7  & 9,70  & 9,46  & 15,71 & 19,09 & 25,56 & 29,88 & 35,11 & 30,91 & 24,96 & 19,01 & 15,83 & 12,66 \\ \hline
+8  & 10,88 & 10,25 & 16,68 & 19,93 & 26,56 & 30,73 & 36,01 & 31,88 & 25,96 & 19,90 & 16,99 & 13,73 \\ \hline
+9  & 11,36 & 10,57 & 17,06 & 20,27 & 26,96 & 31,07 & 36,37 & 32,26 & 26,36 & 20,27 & 17,46 & 14,16 \\ \hline
+10 & 11,39 & 10,59 & 17,08 & 20,28 & 26,98 & 31,08 & 36,38 & 32,28 & 26,38 & 20,29 & 17,49 & 14,19 \\ \hline
+11 & 11,35 & 10,56 & 17,04 & 20,23 & 26,90 & 31,01 & 36,31 & 32,22 & 26,33 & 20,25 & 17,45 & 14,15 \\ \hline
+12 & 11,33 & 10,54 & 17,01 & 20,20 & 26,86 & 30,97 & 36,27 & 32,18 & 26,30 & 20,23 & 17,43 & 14,14 \\ \hline
+13 & 11,35 & 10,56 & 17,04 & 20,23 & 26,90 & 31,01 & 36,31 & 32,22 & 26,33 & 20,25 & 17,45 & 14,15 \\ \hline
+14 & 11,39 & 10,59 & 17,08 & 20,28 & 26,98 & 31,08 & 36,38 & 32,28 & 26,38 & 20,29 & 17,49 & 14,19 \\ \hline
+15 & 11,36 & 10,57 & 17,06 & 20,27 & 26,96 & 31,07 & 36,37 & 32,26 & 26,36 & 20,27 & 17,46 & 14,16 \\ \hline
+16 & 10,88 & 10,25 & 16,68 & 19,93 & 26,56 & 30,73 & 36,01 & 31,88 & 25,96 & 19,90 & 16,99 & 13,73 \\ \hline
+17 & 9,70  & 9,46  & 15,71 & 19,09 & 25,56 & 29,88 & 35,11 & 30,91 & 24,96 & 19,01 & 15,83 & 12,66 \\ \hline
+18 & 7,88  & 8,23  & 14,18 & 17,74 & 23,94 & 28,50 & 33,65 & 29,34 & 23,36 & 17,58 & 14,04 & 11,02 \\ \hline
+19 & 5,77  & 6,77  & 12,31 & 16,05 & 21,89 & 26,75 & 31,81 & 27,37 & 21,39 & 15,88 & 11,95 & 9,14  \\ \hline
+20 & 3,83  & 5,37  & 10,46 & 14,34 & 19,76 & 24,91 & 29,89 & 25,37 & 19,43 & 14,26 & 10,03 & 7,44  \\ \hline
+21 & 2,41  & 4,29  & 8,96  & 12,88 & 17,91 & 23,30 & 28,20 & 23,64 & 17,81 & 12,97 & 8,59  & 6,21  \\ \hline
+22 & 1,56  & 3,60  & 7,93  & 11,84 & 16,54 & 22,09 & 26,95 & 22,39 & 16,69 & 12,14 & 7,73  & 5,51  \\ \hline
+11 & 1,16  & 3,25  & 7,36  & 11,23 & 15,73 & 21,37 & 26,21 & 21,66 & 16,06 & 11,70 & 7,32  & 5,19  \\ \hline
+\end{tabular}
+\caption{Perfil de temperaturas en las coordenadas del emplazamiento según el método descrito en \cite{temp_paper} \label{tab:temp_profiles}}
+\end{table}
+
+Usando la matriz de temperaturas ambiente, procedemos a calcular la temperatura de la célula con la ecuación \ref{eqn:T_c}
+
+
+
