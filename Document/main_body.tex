@@ -617,8 +617,7 @@ m                & 1,3                      \\
 Área modulo      & $1,957 \times 0,992 m^2$ \\
 Potencia Nominal & 320 Wp                   \\  
 \end{tabular}
-\label{tab:module_conf}
-\caption{Configuración módulo standard }
+\caption{Configuración módulo standard \label{tab:module_conf}}
 \end{table}
 \item \textbf{Inversor}:
 \begin{table}[ht]
@@ -915,6 +914,7 @@ Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$
 \end{lstlisting}
 
 \subsubsection{Factor de forma variable}
+\label{section:var_form_factor}
 
 Los cálculos anteriores se han realizado suponiendo que el factor de forma $FF$ es constante, por tanto, de la expresión \ref{eqn:FF}, si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
 \begin{equation}
@@ -1088,6 +1088,7 @@ Con este paso obtenemos la potencia horaria entregada por el generador fotovolta
 
 Lo primero, establecemos las expresiones de las potencias normalizadas Siendo $P_{inv}$ la potencia nominal del inversor:
 \begin{equation}
+\label{eqn:p_i}
 p_i = \frac{P_{DC}}{P_{inv}}
 \end{equation}
 
@@ -1119,6 +1120,7 @@ k_2p_o^2 + (k_1 + 1)p_o + (k_0 - p_i) = 0
 
 Y por último, si conocemos la $p_o$ podemos calcular la potencia en corriente alterna que entrega el generador:
 \begin{equation}
+\label{eqn:P_AC}
 P_{AC} = p_o \cdot p_{inv}
 \end{equation}
 
