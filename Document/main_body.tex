@@ -3,94 +3,62 @@ El proceso de cálculo que se va a seguir para la estimación completa de la ins
 
 A lo largo de este capítulo, se utilizará el término \textbf{aplicación} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
 
-\section{Obtención de datos del usuario}
-Como se ha mencionado anteriormente, el objetivo principal de la aplicación es de realizar todos los cálculos que se necesitan para estimar una instalación fotovoltaica conectada a red, de la manera mas exacta posible,  en un emplazamiento concreto elegido por el usuario. Por tanto, el primer paso que tuve que dar con la aplicación fue la de obtener todos los datos necesarios para realizar dichos cálculos.
-Estos datos son:
-\begin{itemize}
-\item Emplazamiento del usuario
-\item Área, inclinación, orientación y nivel de suciedad de la superficie de instalación
-\end{itemize}
-\subsection{Emplazamiento del usuario}
-Mas adelante, para poder obtener los datos de irradiación global en el plano horizontal, se necesitan los datos de latitud y longitud del sitio del que se quieren obtener dichos datos. Sin embargo, es poco intuitivo pedirle a un usuario que introduzca sus coordenadas, dado que la mayoría desconocen dichos datos.\\
-Por lo tanto, la ruta que he tomado es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que necesito para poder extraer la irradiación que he mencionado antes.\\
+A continuación se muestra un diagrama que resume los pasos del proceso que se ha seguido para llegar a los resultados deseados.
 
-Este proceso comienza por recoger los datos de la dirección, municipio y código postal a través del formulario que aparece en la página web.
+\begin{figure}[ht]
+\includegraphics[scale=0.8]{diag_procedimiento_calculo}
+\centering
+\caption{Procedimiendo de cálculo}
+\label{fig:diag_procedimiento_calculo}
+\end{figure}
 
-Estos datos son recogidos en el código a través de un nombre único que han recibido:\\
-\begin{lstlisting}[style=ES6, caption={Variables correspondientes a los tres campos}]
-const addressInput = document.querySelector('#address');
-const cityInput = document.querySelector('#city');
-const postalInput = document.querySelector('#postal');
-\end{lstlisting}
-
-Una vez que tenemos estos datos recogidos en las variables, podemos pedir a la API de Google Maps las coordenadas de latitud y longitud de dicho emplazamiento encadenando las tres variables y una clave única de identificación,  para obtener un enlace único que se corresponde a dicha localización.\\
-
-\begin{lstlisting}[style=ES6, label={lst:getCoordinates}, caption={Función encargada de solicitar los datos a la API}]
-const getCoordinates = async () => {
-	const address = addressInput.value.split(' ').join('+');
-	const city = cityInput.value;
-	const postal = postalInput.value;
-	const requestURL = `${googleEndpoint}address=${address},${city},${postal}
-										,spain&key=${googleApiKey}`;
-	const response = await fetch(requestURL);
-	const data = await response.json();
-	const info = {
-		formattedAdress: data.results[0].formatted_address,
-		lat: data.results[0].geometry.location.lat,
-		long: data.results[0].geometry.location.lng
-	};
-
-	return info;
-};
-\end{lstlisting}
-
-La función de \textbf{getCoordinates} (\ref{lst:getCoordinates}) recoge el valor de la dirección y reemplaza los espacios con el signo + (formato requerido por la API) y lo concatena con el valor del campo de la ciudad y el código postal. Al final le añade una clave única que identifica la aplicación a la hora de establecer limites de uso y evitar abuso de la API.\\
-
-Una vez creado este enlace único, el código lanza la petición al servicio y retorna con la información que es recogida y se guarda en dos variables \textbf{lat} y \textbf{long} para ser utilizadas posteriormente, a la hora de obtener los datos de irradiación global.
-
-\subsection{Área, inclinación, orientación y nivel de suciedad de la superficie de instalación}
-
-Además de las información de latitud y longitud del emplazamiento, el cálculo de la instalación también requiere de información relacionada con el área, la inclinación, la orientación y el nivel de suciedad de la superficie donde se va a realizar la instalación, para poder realizar una estimación lo mas exacta posible.
-
-Estos valores son recogidos directamente de los campos de la pagina web, al igual que los campos anteriores, sin necesitar ningún trato especial:\\
-\begin{lstlisting}[style=ES6, caption={Variables correspondientes a los campos indicados}]
-const slope = document.querySelector('#slope');
-const area = document.querySelector('#area');
-const orientation = document.querySelector('#orientation');
-const dirtLevel = document.querySelector('#dirt-level');
-\end{lstlisting}
-
-\section{Obtención de la irradiación global media en el plano horizontal}
-\label{section:get_global_rad}
-
-El primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo. En la sección anterior se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.\\
-
-En esta sección, se va a obtener la irradiación para las dichas coordenadas utilizando un servicio de ADRASE \footnote{\textit{ADRASE}: Acceso a Datos de irradiación Solar en España \url{http://www.adrase.com/}}, un proyecto realizado por el CIEMAT. Este servicio ofrece de manera gratuita y de uso libre, datos correspondientes a valores medios mensuales de irradiación global en el plano horizontal para toda la geografía española.\\
-
-Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.\\
-
-Con el objetivo de no saturar la pagina de ADRASE y evitar error de funcionamiento de la aplicación debidos a la posibilidad de que la página desaparezca en un futuro, se ha realizado una descarga de los datos de la página, con un intervalo de 0.1 tanto en longitud como en latitud y se han guardado en una base de datos.De esta forma también se reducen los tiempos de cálculo en gran medida al tener un acceso casi instantáneo a los valores medios de irradiación. 
-Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
-\newpage
+Los pasos que se muestran en el diagrama son:
+\begin{enumerate}
+	\item Obtener la irradiación global diaria en el plano horizontal en el emplazamiento del usuario
+	\item Separar dicha irradiación  en sus componentes de irradiación difusa y directa.
+	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
+	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
+	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
+	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
+	\item Calcular la potencia en corriente continua entregada por el generador
+	\item Convertir la potencia en corriente alterna a través de inversor 
+\end{enumerate}
 
 \section{Naturaleza de la radiación solar}
 
+Para el cálculo de la radiación solar que finalmente incide en una área concreta localizada en la superficie terrestre debemos distinguir tres componentes diferenciados, comúnmente denominados:
+
+\begin{itemize}
+\item \textbf{ Radiación Directa, $B$:} representa la porción de radiación procedente en linea directa del Sol.
+\item \textbf{Radiación Difusa, $D$:} representa toda la fracción  de radiación procedente de todo el cielo, excepto del sol. Es decir, incluye todos aquellos rayos dispersados por la atmósfera. Por tanto, será dependiente de condiciones climatológicas como nubosidades, niebla o lluvia.
+\item \textbf{Radiación del albedo, $R$:} es aquella fracción de la radiación procedente de la reflexión con el suelo. Habitualmente, supone una contribución muy pequeña, que en algunos casos, como el de este proyecto, puede ser despreciada. Normalmente se toma en consideración en áreas con altos indices de reflexión como aquellos con temporadas largas de nieve.
+\end{itemize}
+
+La suma de las tres componentes constituyen la denominada radiación global:
+\begin{equation}
+G=B+D+R
+\end{equation}
+\label{equation:eqn_global_radiation}
+
+El Capítulo 3: Radiación solar, del libro mencionado anteriormente \cite{esf_book}, describe el proceso que se ha de seguir para obtener una estimación de las componentes directa y difusa a partir del dato de radiación global, dado que es el que comúnmente se puede obtener de una localización determinada.
+
 \subsection{Radiación fuera de la atmósfera terrestre}
 \label{section:extra-irrad}
-La radiación emitida por el Sol atraviesa el espacio vacío en todas las dirección sin sufrir pérdidas a causa de la interacción con los medios material. Sin embargo, la irradiancia solar, que se define como la densidad de flujo radiante solar, se ve atenuada por el cuadrado de la distancia. Parte de esta irradiancia es interceptada por la Tierra. Dada la relación entre la distancia con el Sol y el tamaño de nuestro planeta, se puede asumir que su valor es constante en toda la superficie exterior de la atmósfera. El valor promedio de esta irradiancia, según varias campañas de medición es de $B_{0} = 1367 \frac{W}{m^2}$.
 
-Para calcular la irradiancia incidente en una superficie tangente a la atmosfera en una latitud, debemos tener en cuenta que la distancia entre la Tierra y el Sol varía a lo largo del año, debido a la excentricidad de la órbita elíptica que describe nuestro planeta. La ecuación para calcular dicho valor es:\\
+Lo primero que se menciona en dicho proceso es la obtención de la irradiancia denominada extra-terrestre o extra-atmosférica, que es la radiación que llega a la atmósfera, directamente desde el sol, que no sufre ninguna perdida por interaccionar con algún medio. Como la relación entre el tamaño de nuestro planeta y la distancia entre el Sol y la Tierra es muy reducida, es posible asumir que el valor de dicha irradiancia es constante, siendo este valor $B_0 = 1367 \frac{W}{m^2}$, según varias mediciones llevadas a cabo.
+
+Como la órbita que describe la Tierra alrededor del Sol no es totalmente circular, sino que tiene cierta excentricidad, a la hora de calcular la irradiancia incidente en una superficie tangente a la atmósfera en una latitud concreta, debemos aplicar un factor de corrección de la excentricidad, como se muestra en la ecuación:\\
+
 \begin{equation}\label{eqn:B00}
 B_0(0) = B_0\epsilon_0\cos\theta_{zs}
 \end{equation}\\
 
+Para calcular esta irradiación diaria, debemos calcular primero los diferentes componentes que forman parte de esta:
+\begin{itemize}
+\item $B_{0} = 1367 \frac{W}{m^2}$
+\item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 \cdot \cos(2 \pi d_n / 365)$
 
-Es importante resaltar que el valor de la irradiancia extra-atmosférica o extra-terrestre solo requiere consideraciones atmosféricas. Así, integrando la ecuación \ref{eqn:B00}, podemos calcular la irradiación diaria extra-terrestre con la ecuación obtenida:\\
-\begin{equation}\label{eqn:B0d0}
-B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\cos\delta\sin\omega_s)
-\end{equation}\\
-
-Es posible demostrar que el promedio mensual de esta irradiación diaria coincide numéricamente con el valor de irradiación diaria correspondiente a los denominados días promedios, días en los que la declinación correspondiente coincide con el promedio mensual. Por tanto, podemos calcular el valor medio mensual de la irradiación diaria extra-atmosférica con el valor de la declinación de uno de los doce días promedio.
+Se puede llegar a demostrar que la media mensual de la irradiación diaria coincide en valor con la irradiación diaria de un día denominado día promedio.Por tanto, podemos calcular el valor medio mensual de la irradiación diaria extra-atmosférica con el valor de la declinación de uno de los doce días promedio.
 
 Estos doce días promedios son:
 
@@ -105,11 +73,6 @@ $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 &
 \caption{Dias promedio}
 \end{table}
 
-Para calcular esta irradiación diaria, debemos calcular primero los diferentes componentes que forman parte de esta:
-\begin{itemize}
-\item $B_{0} = 1367 \frac{W}{m^2}$
-\item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 \cdot \cos(\frac{2\pid_n}{365})$
-
 En código se representa de la siguiente manera:
 \begin{lstlisting}[style=ES6, caption={Factor de corrección por excentricidad}]
 		const exct = 1 + 0.033 * Math.cos((2 * Math.PI * elem.normalDay) / 365)
@@ -122,7 +85,7 @@ En código se representa de la siguiente manera:
 \end{lstlisting}
 \item Cenit Solar: $\cos(\theta_{zs}) = \cos(\delta)\cos(\omega)\cos(\phi) + \sin(\delta)sin(\phi)$\\
 
-Para el calculo del cenit solar, hay que tener en cuenta que varía en función de la hora del día, así que se deberá calcular un valor para cada una de las 24h del día, con la diferencia de que en el cálculo, las horas irán de -12 a 12 en lugar de 0 a 23 y además, tendremos que convertir las horas a ángulos multiplicando por 15$\deg$. De tal manera, que en código, el calculo del cenit solar, tendrá ésta representación:\\
+Para el calculo del cenit solar, hay que tener en cuenta que varía en función de la hora del día, así que se deberá calcular un valor para cada una de las 24h del día, con la diferencia de que en el cálculo, las horas irán de -12 a 12 en lugar de 0 a 23 y además, tendremos que convertir las horas a ángulos multiplicando por 15$\degree$. De tal manera, que en código, el calculo del cenit solar, tendrá ésta representación:\\
 \begin{lstlisting}[style=ES6, caption={Cálculo del cenit solar}]
 		for (let h = -12; h < 12; h++) {
 			const cosZenit =
@@ -134,7 +97,12 @@ Para el calculo del cenit solar, hay que tener en cuenta que varía en función 
 \end{lstlisting}
 \end{itemize}
 
-Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$ con la siguiente expresión:
+Como se puede observar, la irradiancia extra-terrestre solo requiere de consideraciones geométricas. Así, integrando la ecuación \ref{eqn:B00}, podemos calcular la irradiación diaria extra-terrestre con la ecuación obtenida:\\
+\begin{equation}\label{eqn:B0d0}
+B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\cos\delta\sin\omega_s)
+\end{equation}\\
+
+Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$:
 \begin{lstlisting}[style=ES6, caption={Equación para B0d0}]
 		const B0d0 =
 			-(24 / Math.PI) *
@@ -151,66 +119,34 @@ donde:
 \item ws: ángulo amanecer
 \item decl: declinación
 \end{itemize}
-Para el cálculo de la irradiancia solar que finalmente incide en una superficie localizada en la corteza terrestre será útil distinguir tres componentes diferenciados, comúnmente denominados:
 
-\begin{itemize}
-\item Radiación Directa, \textit{B}: representa la fracción procedente en linea directa del Sol.
-\item Radiación Difusa, \textit{D}: representa toda la radiación procedente de todo el cielo, excepto del sol, y por tanto incluye todos los rayos dispersados por la atmósfera. Es una radiación que depende del estado de la atmósfera, y variará en función de las condiciones climatológicas.
-\item Radiación del albedo, \textit{R}: es aquella fracción de la radiación procedente de la reflexión con el suelo. Habitualmente, supone una contribución muy pequeña, que en algunos casos, como el de este proyecto, puede ser despreciada.
-\end{itemize}
 
-La suma de las tres componentes constituyen la denominada irradiancia global:
-\begin{equation}
-G=B+D+R
-\end{equation}
-\label{equation:eqn_global_radiation}
-\subsubsection{Nomeclatura}
-
-Es importante distinguir, dentro de las ecuaciones que modelan el comportamiento de la radiación solar, la forma de indicar cada componente de la irradiancia, el instante o el período en el que se recibe. 
-
-Es recomendable leer estas expresiones en el orden período, forma, tiempo y lugar utilizando el formato de nomenclatura de la siguiente ecuación
-\begin{equation}
-	Forma_{tiempo, promedio}(lugar)
-\end{equation}
-
-Para expresar el lugar de incidencia caben las siguiente posibilidades:
-\begin{itemize}
-\item (Orientación, Inclinación) : ($\beta , \alpha$)
-\item (Horizontal) : (0)
-\item (Superficie perpendicular al vector solar): ($n$)
-\item (En el plano del generador): ($I$)
-\end{itemize}
-
-Por ejemplo, al escribir $B_{h}(0)$ leeremos irradiación directa (forma) horaria (tiempo) en el plano horizontal (lugar), mientras que $G_{d,m}(I)$ se lee media mensual (período) de la irradiación global (forma) diaria (tiempo) en el plano generador (lugar).\\
-
-\section{Cálculo de componentes de radiación solar}
+\subsection{Cálculo de componentes de radiación solar}
 \label{section:radiation_components}
-Partiendo de los datos obtenidos de la página de ADRASE, de radiación media mensual, debemos calcular las componentes de irradiación directa y difusa en el plano horizontal y después realizar el paso al plano inclinado.
-
-Un esquema resumido del proceso se indica a continuación:
-
-\begin{figure}[ht]
-\includegraphics[scale=0.7]{32_ESFBOOK_1}
-\centering
-\caption{Procedimiendo de cálculo (Figura 3.3 pág 31 \cite{esf_book})}
-\label{fig:fig_1}
-\end{figure}
-
-En la figura \ref{fig:fig_1} se muestra el proceso de cálculo que se debe seguir para obtener los valores de radiación efectiva incidente en el plano del generador, que después se utilizarán para calcular la energía que es capaz de entregar este.
 
 
-Los pasos descritos son:
-\begin{enumerate}
-	\item Separar la irradiación global diaria en el plano horizontal en sus componentes de irradiación difusa y directa.
-	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
-	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
-	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
-	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
-\end{enumerate}
+Para poder calcular la energía producida por un generador fotovoltaico, se necesita conocer la radiación solar que incide sobre la superficie de dicho generador. En éste caso las caracteristicas del generador vienen indicadas por el usuario de la aplicación, por tanto, debemos recoger dicha información. La información necesaria para conocer la radiación que incide en la superficie son:
+\begin{itemize}
+\item \textbf{Latitud y longitud del emplazamiento}: La ruta que he tomado para obtener estos datos, es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que necesito para poder extraer la irradiación que he mencionado antes.\\
+\item \textbf{Orientación, inclinación y nivel de suciedad de la superficie}: Estos valores son recogidos directamente de los campos de la pagina web, sin necesitar ningún trato especial.
+\end{itemize} 
+En el anexo de programación se explica más detalladamente como se ha realizado la recogida de estos datos y su posterior envío a la API de Google.
 
-Para poder calcular la energía producida por un generador fotovoltaico, es necesario conocer la radiación solar que incide sobre la superficie de dicho generador. Para poder predecir la energía producida por éste en un tiempo futuro, el problema que se ha de resolver es estimar la irradiancia \footnote{\textbf{Irradiancia}: densidad de potencia de radiación solar incidente en una superficie. Unidades: $\frac{W}{m^2}$} que recibirá, a partir del comportamiento de la radiación solar en ese lugar.\\
+\subsubsection{Obtención de la irradiación global media en el plano horizontal}
+\label{section:get_global_rad}
 
-En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice es la relación entre la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
+Como se puede observar en el diagrama \ref{fig:diag_procedimiento_calculo}, el primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo. Anteriormente se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.\\
+
+A continuación, se va a obtener la irradiación para las dichas coordenadas utilizando un servicio de ADRASE \footnote{\textit{ADRASE}: Acceso a Datos de Irradiación Solar en España \url{http://www.adrase.com/}}, un proyecto realizado por el CIEMAT. Este servicio ofrece de manera gratuita y de uso libre, datos correspondientes a valores medios mensuales de irradiación global en el plano horizontal para toda la geografía española.\\
+
+Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.\\
+
+Con el objetivo de no saturar la pagina de ADRASE y evitar errores de funcionamiento de la aplicación debidos a la posibilidad de que la página desaparezca en un futuro, se ha realizado una descarga de los datos de la página, con un intervalo de 0.1 $\degree$ tanto en longitud como en latitud y se han guardado en una base de datos.De esta forma también se reducen los tiempos de cálculo en gran medida al tener un acceso casi instantáneo a los valores medios de irradiación. 
+Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
+
+Una vez obtenida la radiación global media para los doce meses, en el emplazamiento indicado, se puede comenzar el proceso de obtención de las componentes de ésta.
+
+En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice relaciona la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
 
 \begin{equation}
 \label{eqn:ktd}
