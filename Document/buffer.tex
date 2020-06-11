@@ -56,15 +56,5 @@ const orientation = document.querySelector('#orientation');
 const dirtLevel = document.querySelector('#dirt-level');
 \end{lstlisting}
 
-\section{Obtención de la irradiación global media en el plano horizontal}
-\label{section:get_global_rad}
 
-El primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo. En la sección anterior se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.\\
-
-En esta sección, se va a obtener la irradiación para las dichas coordenadas utilizando un servicio de ADRASE \footnote{\textit{ADRASE}: Acceso a Datos de irradiación Solar en España \url{http://www.adrase.com/}}, un proyecto realizado por el CIEMAT. Este servicio ofrece de manera gratuita y de uso libre, datos correspondientes a valores medios mensuales de irradiación global en el plano horizontal para toda la geografía española.\\
-
-Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.\\
-
-Con el objetivo de no saturar la pagina de ADRASE y evitar error de funcionamiento de la aplicación debidos a la posibilidad de que la página desaparezca en un futuro, se ha realizado una descarga de los datos de la página, con un intervalo de 0.1 tanto en longitud como en latitud y se han guardado en una base de datos.De esta forma también se reducen los tiempos de cálculo en gran medida al tener un acceso casi instantáneo a los valores medios de irradiación. 
-Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
 \newpage

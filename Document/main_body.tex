@@ -135,11 +135,13 @@ En el anexo de programación se explica más detalladamente como se ha realizado
 \subsubsection{Obtención de la irradiación global media en el plano horizontal}
 \label{section:get_global_rad}
 
-Como se puede observar en el diagrama \ref{fig:diag_procedimiento_calculo}, el primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo. Anteriormente se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.\\
+Como se puede observar en el diagrama \ref{fig:diag_procedimiento_calculo}, el primer paso del cálculo de una instalación fotovoltaica es el de conocer la irradiación global media en el plano horizontal para el emplazamiento donde se va a realizar el cálculo.
 
-A continuación, se va a obtener la irradiación para las dichas coordenadas utilizando un servicio de ADRASE \footnote{\textit{ADRASE}: Acceso a Datos de Irradiación Solar en España \url{http://www.adrase.com/}}, un proyecto realizado por el CIEMAT. Este servicio ofrece de manera gratuita y de uso libre, datos correspondientes a valores medios mensuales de irradiación global en el plano horizontal para toda la geografía española.\\
+ Anteriormente se obtuvieron las coordenadas de latitud y longitud del emplazamiento introducido por el usuario.
 
-Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.\\
+A continuación, se va a obtener la irradiación para las dichas coordenadas utilizando un servicio de ADRASE \footnote{\textit{ADRASE}: Acceso a Datos de Irradiación Solar en España \url{http://www.adrase.com/}}, un proyecto realizado por el CIEMAT. Este servicio ofrece de manera gratuita y de uso libre, datos correspondientes a valores medios mensuales de irradiación global en el plano horizontal para toda la geografía española.
+
+Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.
 
 Con el objetivo de no saturar la pagina de ADRASE y evitar errores de funcionamiento de la aplicación debidos a la posibilidad de que la página desaparezca en un futuro, se ha realizado una descarga de los datos de la página, con un intervalo de 0.1 $\degree$ tanto en longitud como en latitud y se han guardado en una base de datos.De esta forma también se reducen los tiempos de cálculo en gran medida al tener un acceso casi instantáneo a los valores medios de irradiación. 
 Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
@@ -204,10 +206,12 @@ Para cada uno de los doce valores de radiación global media, aplicamos la fracc
 
 \section{Radiación en superficies inclinadas}
 
-Para poder obtener los valores de de irradiación global en un plano inclinado a partir de valores de irradiación global en el plano horizontal se describe en la figura \ref{fig:fig_1}. El proceso de cálculo parte de los valores de irradiación global diaria en el plano horizontal, o en el caso de no tener estos valores disponibles, podemos utilizar la ecuación \ref{eqn:page} para obtener las respectivas medias mensuales de irradiación difusa y directa en el plano horizontal.
-A continuación, para poder llevar a cabo las transformaciones al plano inclinado, debemos estimar los valores de irradiancia difusa, directa y global en el plano horizontal. Con estas estimaciones podemos calcular los valores correspondientes al plano inclinado.
+Habiendo ya obtenido las valores de irradiación diaria en el plano horizontal, y divididos en sus componentes directa y difusa.
+A continuación, para poder llevar a cabo las transformaciones al plano inclinado, debemos estimar los valores horarios de irradiancia difusa, directa y global en el plano horizontal. Con estas estimaciones podemos calcular los valores correspondientes al plano inclinado.
 
-Integrando los valores de irradiancia se obtienen las estimaciones de irradiación diaria difusa, directa y global en el plano horizontal. A estos valores les aplicaremos las pérdidas por suciedad, añadiéndole el apellido de ``efectiva`` a la irradiancia e irradiación. Será esta irradiación incidente efectiva la que se utilizará para el calculo de la energía producida por el generador.
+Integrando los valores de irradiancia se obtienen las estimaciones de irradiación diaria difusa, directa y global en el plano inclinado.Al realizar ésta transformación, la irradiancia/irradiación recibe el adjetivo de \textit{incidente}.
+
+A estos valores les aplicaremos las pérdidas por suciedad, añadiéndole el adjetivo de \textit{efectiva} a la irradiancia e irradiación. Será esta irradiación incidente efectiva la que se utilizará para el calculo de la energía producida por el generador.
 
 \subsection{Estimación de irradiancia a partir de irradiación diaria}
 \label{section:3.5.1}
@@ -276,9 +280,7 @@ En código, los expresiones anteriores se representan de la siguiente forma:
 \subsection{Transformación al plano del generador}
 \label{section:3.5.2}
 
-Una vez calculados los valores de irradiancia en el plano horizontal, el siguiente paso consiste en estimar los componentes de irradiancia en el plano del generador. La irradiancia directa es calculable mediante criterios geométricos, teniendo en cuenta el ángulo del cenit solar y el ángulo de incidencia en el generador.\\
-
-Para obtener estos valores en el plano inclinado, lo primero que debemos calcular son los valores horarios de radiación global, directa y difusa en el plano horizontal, aplicando las dos relaciones, $r_D$ y $r_G$ que se han calculado en la sección anterior.
+Para obtener los valores de irradiancia en el plano inclinado, lo primero que debemos calcular son los valores horarios de radiación global, directa y difusa en el plano horizontal, aplicando las dos relaciones, $r_D$ y $r_G$ que se han calculado en la sección anterior.
 
 Para ello, emplearemos las siguientes ecuaciones:
 \begin{equation}
@@ -318,18 +320,18 @@ En código, las expresiones serían las siguientes:
 		elem.hourlyValues = hourlyValues
 \end{lstlisting}
 
-Se puede observar que para las horas en las que el coseno es menor que el coseno del ángulo de amanecer, se toman valores nulos para las radiaciones.\\
+Se puede observar que para las horas en las que el coseno es menor que el coseno del ángulo de amanecer, se toman valores nulos para las radiaciones. Dado que en esas horas no existe radiación solar, aunque en algunos casos el cálculo pueda dar valores distintos de 0.
 
 Una vez obtenidos estos valores horarios de irradiancia en el plano horizontal, el siguiente paso consiste en llevarlo al plano del generador.
 
-El planteamiento de ésta transición es el siguiente:
+El planteamiento de ésta transformación es el siguiente:
 \begin{itemize}
 \item \textbf{Irradiancia Directa $B(\beta,\alpha)$:} ecuación basada en geometría solar (ángulo cenital) y del generador(ángulo de incidencia).
 \begin{equation}
 \label{eqn:B_beta_alpha}
 B(\beta,\alpha) = B(0) \cdot \frac{max(0,\cos(\theta_s))}{\cos(\theta_{zs})}
 \end{equation}
-\item \textbf{Irradiancia Directa $D(\beta,\alpha)$:} Existen dos modelos del estado de cielo, el isotrópico y el anisotrópico. En este caso, utilizaremos el modelo anisotrópico.
+\item \textbf{Irradiancia Directa $D(\beta,\alpha)$:} Utilizando el modelo de cielo anisotrópico, se distinguen dos componentes de la irradiancia directa, denominados \textit{circunsolar} e \textit{isotrópica}.
 \begin{equation}
 D(\beta,\alpha) = D^I(\beta,\alpha)+D^C(\beta,\alpha)
 \end{equation}
@@ -338,6 +340,9 @@ D^I(\beta,\alpha) = D(0)\cdot(1-k_1)\cdot\frac{1+\cos(\beta)}{2}
 \end{equation}
 \begin{equation}
 D^C(\beta,\alpha) = D(0)\cdot k_1 \cdot \frac{max(0, \cos(\theta_s))}{\cos(\theta_{zs})}
+\end{equation}
+\begin{equation}
+k_1 = \frac{B_h}{B_0(0)}
 \end{equation}
 \item \textbf{Irradiancia de Albedo $R(\beta,\alpha)$:} Se considera nula por tener un porcentaje de aportación muy reducido.
 \end{itemize}
@@ -414,12 +419,12 @@ newData.meanValues.forEach((elem, index) => {
 	})
 \end{lstlisting}
 
-Con estos cálculos obtenemos la irradiancia global incidente, es decir, en el plano del generador. El siguiente es añadirle el apellido de ``efectica'' aplicándole las pérdidas por ángulo de incidencia y suciedad.
+Con estos cálculos obtenemos la irradiancia global incidente, es decir, en el plano del generador. El siguiente es añadirle el apellido de \textit{efectiva} aplicándole las pérdidas por ángulo de incidencia y suciedad.
 
 \subsection{Pérdidas por ángulo de incidencia y suciedad}
 \label{section:3.5.3}
 
-Al tratarse de sistemas estáticos, la radiación incidente en un módulo fotovoltaico está frecuentemente desviada de la normal a la superficie del módulo. Esta desviación, cuantificada por el ángulo de incidencia [eq. \ref{eqn:ang_incid}], es causa de pérdidas por reflexión.
+Al tratarse de sistemas estáticos, la radiación que incide en el módulo se puede ver desviada de la perpendicular e incidir con ángulo diferentes. Esta desviación, cuantificada por el ángulo de incidencia [eq. \ref{eqn:ang_incid}], es causa de pérdidas por reflexión.
 
 Por otro lado, la suciedad acumulada en la superficie del módulo altera las propiedades angulares del mismo y reduce la capacidad de transmisión del vidrio.
 
@@ -449,16 +454,12 @@ Alto              & 0,92                                                       &
 \end{table}
 El cálculo del coeficiente $FT_B(\theta_s)$, en código, toma este aspecto:
 \begin{lstlisting}[style=ES6, caption={Cálculo del coeficiente $FT_B(\theta_s)$}]
-newData.TDirtTClean = TDirtTClean
-newData.ar = ar
-newData.c1 = c1
-newData.c2 = c2
-const FTB = (Math.exp(-Math.cos(tiltRad) / ar) - 
-Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar))
+	const FTB = (Math.exp(-Math.cos(tiltRad) / ar) - 
+	Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar))
+	const Btilt = elem.hourlyValues[i].Btilt * TDirtTClean * (1 - FTB)
 \end{lstlisting}
 
-
-Para la componente de isotrópica existe otra expresión que depende del ángulo de inclinación del generador, del coeficiente de pérdidas angulares y de dos coeficientes de ajuste $c_1$ y $c_2$. El primero de ellos toma un valor constante $c_1=\frac{4}{3\pi}$. El segundo depende linealmente de $a_r$ según se recoge en la tabla. En ésta expresión el ángulo $\beta$ está en radianes.
+A la hora de aplicar dichas pérdidas a la componente difusa, debemos calcular cada una de las dos partes por separado. Para la componente de isotrópica existe otra expresión que depende del ángulo de inclinación del generador, del coeficiente de pérdidas angulares y de dos coeficientes de ajuste $c_1$ y $c_2$. El primero de ellos toma un valor constante $c_1=\frac{4}{3\pi}$. El segundo depende linealmente de $a_r$ según se recoge en la tabla \ref{tab:perdidas_suciedad}. En ésta expresión el ángulo $\beta$ está en radianes.
 \begin{equation}
 FT_D \simeq exp[-\frac{1}{a_r}\cdot(c_1\cdot(\sin\beta + \frac{\pi-\beta-\sin\beta}{1+\cos\beta	})+c_2\cdot(\sin\beta + \frac{\pi-\beta-sin\beta}{1+\cos\beta})^2)]
 \end{equation}
@@ -483,7 +484,6 @@ En código las ecuaciones toman esta forma:
 						Math.sin(betaRad)) / (1 + Math.cos(betaRad)), 2))
 				const FTD = Math.exp(expFTD)
 
-				const Btilt = elem.hourlyValues[i].Btilt * TDirtTClean * (1 - FTB)
 				const DiTilt = elem.hourlyValues[i].DiTilt * TDirtTClean * (1 - FTD)
 				const DcTilt = elem.hourlyValues[i].DcTilt * TDirtTClean * (1 - FTB)
 \end{lstlisting}
@@ -520,14 +520,14 @@ Un Sistema Fotovoltaico Conectado a Red (SFCR) es un sistema cuya función es pr
 \label{fig:sfcr}
 \end{figure}
 
-La energía producida por un SFCR es consumida total o parcialmente en el emplazamiento de la instalación, o en sus cercanías. La energía sobrante es inyectada a la red de distribución, y a cambio el propietario es compensado económicamente a través de sistemas de retribución tales como: la retribución con prima o el balance neto.
+La energía producida por el sistema es consumida total o parcialmente por la unidad doméstica donde está instalada. La energía sobrante es inyectada a la red de distribución, y a cambio el propietario es compensado económicamente a través de sistemas de retribución tales como: la retribución con prima o el balance neto.
 
-A diferencia de un sistema autónomo o de bombeo, el diseño de SFCR no necesita considerar un consumo mínimo a satisfacer. Con este mecanismo, el objetivo es que la producción anual del sistema sea la máxima posible sin tomar en consideración los consumos cercanos.
+A diferencia de un sistema autónomo o de bombeo, el diseño de SFCR no necesita considerar un consumo mínimo a satisfacer. Con este mecanismo, el objetivo es que la producción anual del sistema sea la máxima posible.
 
 \subsection{Configuración de los elementos del sistema}
 
 A la hora de estimar la energía producida por un SFCR, debemos definir las características nominales de los componentes que forman parte de este, como se muestra en la figura \ref{fig:sfcr}.
-Con el objetivo de reducir al máximo la complejidad de la aplicación de cara al usuario final (cuyos conocimientos de fotovoltaica, de media, serán reducidos) se han fijado unos valores standard para el módulo fotovoltaico, la configuración del generador y el inversor.
+Con el objetivo de reducir al máximo la complejidad de la aplicación de cara al usuario final (cuyos conocimientos de fotovoltaica, de media, serán reducidos) se han fijado unos valores estándar para el módulo fotovoltaico, la configuración del generador y el inversor.
 
 \newpage
 
@@ -581,40 +581,14 @@ V_{max}  & 750
 Para poder llevar a cabo la estimación de la energía producida por el generador, debemos conocer como influye factores como la radiación o la temperatura en una célula solar y en los valores de tensión y corriente que se alcanzan en dichas condiciones.
 
 Existen dos puntos clave que definen una célula solar, la corriente de cortocircuito ($I_{sc}$) y la tensión de circuito abierto ($V_{oc}$). 
-Estos dos parámetros suelen estar disponibles en la información asociada a una célula y se pueden relacionar mediante la siguiente ecuación:
-
-\begin{equation}
-I = I_{sc} \cdot \left[ 1 - exp\left(\frac{e\cdot(V_{oc}-V}{m \cdot k \cdot T_c}\right)\right]
-\end{equation}
 
 \subsubsection{Punto de máxima potencia}
 
-Superpuesta a la curva de corriente-tensión, la figura \ref{fig:mpp} incluye la relación entre la potencia y la tension. Como se puede observar, existe un punto donde dicha potencia es máxima, antes de volver a experimentar una bajada. Las coordenadas de dicho punto vienen definidas por la condición $\frac{dP}{dV} = 0$. En dicho punto, la potencia entregada por la célula es máxima y será considerada como potencia nominal: $P_{mpp} = V_{mpp} \cdot I_{mpp}$. La unidades de dicha potencia son los vatios pico (Wp), indicando así que se trata de la máxima potencia alcanzable.\\
+Por otro lado, existe un punto en la curva de funcionamiento del generador conocido como punto de máximo potencia, donde, como su propio nombre indica, los valores de tensión y corriente son tales que la potencia que está entregando el generador es máxima, y por tanto, es interesante calcular dicho punto.
 
-\begin{figure}[ht]
-\includegraphics[scale=0.7]{MPP}
-\centering
-\caption{Curvas corriente-tensión (línea discontinua) y potencia-tensión (línea contínua) de una célula solar ( $T_a=20\degree C$ y $G=800 \frac{W}{m^2}$) (Figura 4.6 pág 49) \cite{esf_book})}
-\label{fig:mpp}
-\end{figure}
-
-
-Como la célula funciona en corriente continua, su potencia es $ P = V \cdot I $ y por tanto:
-
-\begin{equation}
-\begin{align}
-\frac{d(I \cdot V)}{dV} &= V \cdot \frac {dI}{dV}+I\cdot\frac{dV}{dV}\\
-dP &= V\cdotdI+I\cdotDV
-\end{align}
-\end{equation}
-
-En el punto de máxima potencia se cumplirá:
-\begin{equation}
-\frac{dI}{dV}=-\frac{I_{mpp}}{V_{mpp}}
-\end{equation}
 \subsubsection{Factor de forma y eficiencia}
 
-Como se puede observar en la figura \ref{fig:mpp}, el área encerrada por el rectángulo $I_{mpp}\cdot V_{mpp}$ es inferior al definido por $I_{sc} \cdot V_{oc}$. La relación entre estas dos áreas, se conoce como factor de forma, y toma la siguiente expresión:
+Existe un valor que relaciona los valores mas significativos de un módulo fotovoltaico, éste se conoce como factor de forma y su expresión es la siguiente:
 \begin{equation}
 \label{eqn:FF}
 FF = \frac{I_{mpp} \cdot V_{mpp}}{I_{sc} \cdot V_{oc}}
@@ -645,58 +619,14 @@ Por tanto, para poder estimar el comportamiento de la célula en otras condicion
 
 El procedimiento de cálculo consistirá en comenzar asumiendo que el factor de forma es constante, para calcular los valores de $I_{sc}$ y $V_{oc}$ en las condiciones de temperatura y radiación del emplazamiento. Posteriormente realizaremos los cálculos para tomar en cuenta la variación del factor de forma.
 
-
-
-\subsection{Asociación de dispositivos fotovoltaicos}
-
-Por defecto, las características eléctricas de una sola célula no son suficientes para alimentar una carga convencional. Por lo tanto, es necesario realizar agrupaciones en serie y en paralelo de varias de estas células en lo que conocemos como módulo fotovoltaico para entregar de esta manera los valores de tensión y corriente adecuados para la carga.
-
-Además, un módulo fotovoltaico protege físicamente de la intemperie y aísla eléctricamente al conjunto de células, otorgando la rigidez mecánica necesaria.
-
-\subsubsection{Modelado de un módulo}
-
-Conociendo el comportamiento de una célula solar independiente, podemos trasladarlo al módulo teniendo en cuenta la configuración de éste, sobre todo el numero de células en serie y en paralelo que lo componen.
-
-Para modelar el funcionamiento de un módulo podemos realizar las siguientes suposiciones:
-\begin{itemize}
-\item Los efectos de la resistencia en paralelo son despreciables.
-\item La resistencia serie es independiente de las condiciones de operación.
-\item La corriente fotogenerada ($I_L$) es igual a la corriente de cortocircuito.
-\item En cualquier condición de operación: $exp(\frac{V+I\cdotR_s}{V_t}) > 1$
-\end{itemize}
-
-En un módulo compuesto por $N_{cs}$ células en serie y $N_{cp}$ ramas en paralelo, y suponiendo que todas las células del módulo tienes características idénticas, la tensión de dicho módulo es $V_m= N_{cs} \cdot V_c$ y la corriente del módulo es $I_m = N_{cp} \cdot I_c$ siendo $I_c$ y $V_c$ la corriente y la tensión de  una célula, respectivamente.
-
-Dadas estas suposiciones, la curva de la corriente de módulo toma la siguiente expresión:
-
-\begin{equation}
-I_m = I_{sc} \cdot \left( 1 - exp \left(\frac{V_m - V_{oc} + I_m \cdot R_s}{Vt}\right) \right)
-\end{equation}
-
-Supondremos que la corriente de cortocircuito depende exclusivamente y de forma linea de la irradiancia:
-\begin{equation}
-\label{eqn:I_sc}
-I_sc = G_{ef} \cdot \frac{I_{sc}^*}{G_{stc}}
-\end{equation}
-y la tensión de circuito abierto depende exclusivamente de la temperatura de célula, y decrece linealmente con ella:
-\begin{equation}
-\label{eqn:V_oc}
-V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c}
-\end{equation}
-
-Como ya hemos mencionado anteriormente, si no hay información específica del por parte del fabricante, para módulos de silicio cristalino es habitual emplear el valor:
-\begin{equation}
-\frac{dV_{oc}}{dT_c}=-2,3\frac{mV}{ celula \degree C}
-\end{equation}
-
-\subsubsection{Comportamiento térmico del módulo}
+\subsection{Comportamiento térmico de un módulo}
 \label{section:term_behaviour}
 
-En las ecuaciones anteriores se hace referencia a las condiciones estándar de medida. En estas condiciones, la temperatura de la célula es de $25\degree C$. Sin embargo, la temperatura de operación de la célula es diferente y depende del balance de potencias del módulo.
+La mayoría de las ecuaciones que definen el comportamiento de un módulo fotovoltoico se establecen en lo que se conocen como condiciones estándar de funcionamiento. En estas condiciones, la temperatura de la célula es de $25\degree C$. Sin embargo, la temperatura de operación de la célula es diferente y depende directamente de la radiación que recibe el módulo en cada momento
 
-El módulo recibe potencia luminosa, absorbiendo la fracción de ésta que no se refleja al exterior. De dicha fracción parte es transformada en energía eléctrica mientras que el resto se entrega en forma de calor al entorno.
+El módulo recibe una cantidad de radiación dada, absorbiendo la fracción de ésta que no se refleja al exterior. De dicha fracción parte es transformada en energía eléctrica mientras que el resto se entrega en forma de calor al entorno.
 
-Para simplificar podemos asumir que el incremento de la temperatura de la célula respecto a la ambiente depende linealmente de la irradiancia incidente en ésta. El coeficiente de proporcionalidad depende de muchos factores, tales como el modo de instalación del módulo, la velocidad del viento, la humedad del ambiente o las características constructivas del laminado que cubre las células.
+Para simplificar podemos asumir que el incremento de la temperatura de la célula respecto a la ambiente depende linealmente de la irradiancia incidente en ésta. El coeficiente de proporcionalidad depende de muchos factores, tales como el modo de instalación del módulo, la velocidad del viento, la humedad del ambiente o las características constructivas del cristal que cubre las células.
 
 Todos estos factores quedan recogidos en un valor único representado por la temperatura de operación nominal de la célula (NOCT o TONC), definida como aquella que alcanza una célula cuando su módulo trabaja en las siguientes condiciones:
 \begin{itemize}
@@ -706,6 +636,8 @@ Todos estos factores quedan recogidos en un valor único representado por la tem
 \item Temperatura ambiente: $T_a = 20 \degree C$.
 \item Velocidad del viento:  $ v_v = 1 \frac{m}{s}$.
 \end{itemize}
+
+Éste valor influye en la temperatura de la célula, como se ha mencionado anteriormente. La expresión que relaciona la temperatura de la célula $T_c$ con la temperatura de operación nominal $TONC$ es:
 
 \begin{equation}
 \label{eqn:T_c}
