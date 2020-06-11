@@ -127,7 +127,7 @@ donde:
 
 Para poder calcular la energía producida por un generador fotovoltaico, se necesita conocer la radiación solar que incide sobre la superficie de dicho generador. En éste caso las caracteristicas del generador vienen indicadas por el usuario de la aplicación, por tanto, debemos recoger dicha información. La información necesaria para conocer la radiación que incide en la superficie son:
 \begin{itemize}
-\item \textbf{Latitud y longitud del emplazamiento}: La ruta que he tomado para obtener estos datos, es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que necesito para poder extraer la irradiación que he mencionado antes.\\
+\item \textbf{Latitud y longitud del emplazamiento}: La ruta que se ha tomado para obtener estos datos, es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que se necesitan para poder extraer la irradiación mencionada anteriormente.\\
 \item \textbf{Orientación, inclinación y nivel de suciedad de la superficie}: Estos valores son recogidos directamente de los campos de la pagina web, sin necesitar ningún trato especial.
 \end{itemize} 
 En el anexo de programación se explica más detalladamente como se ha realizado la recogida de estos datos y su posterior envío a la API de Google.
@@ -936,7 +936,7 @@ Una vez calculados los valores de $I_{mpp}$ y $V_{mpp}$ podemos pasar a obtener 
 
 \end{lstlisting} 
 
-\subsubsection{Cálculo final de potencias y energías}
+\subsection{Cálculo final de potencias y energías}
 
 La potencia que obtenemos es la de un solo módulo. Para conocer la potencia que va a ser capaz de entregar el generador, debemos tener en cuenta su configuración de módulos en serie y en paralelo, y multiplicar estos valores de la siguiente manera:
 

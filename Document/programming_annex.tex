@@ -1,0 +1,56 @@
+En este anexo se va a llevar a cabo una explicación mas extensa de algunos de los apartados de la programación que hubieran resultado muy densos o complejos en la explicación del código. Además se hará una descripción más profunda de las tecnologías usadas en la aplicación.
+
+\section{Descripción de tecnologías}
+
+\section{Explicaciones de código}
+
+\subsection{Emplazamiento del usuario}
+Uno de los datos más importantes para poder estimar la energía que finalmente podrá producir el generador es el de la radiación solar en el lugar de instalación.Para ello, es necesario conocer las coordenadas geográficas del emplazamiento. Sin embargo, es poco intuitivo pedirle a un usuario que introduzca sus coordenadas, dado que la mayoría desconocen dichos datos.\\
+Por lo tanto, la ruta que se ha tomado es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que se necesitan para poder obtener la radiación en dicho lugar.
+
+Este proceso comienza por recoger los datos de la dirección, municipio y código postal a través del formulario que aparece en la página web.
+
+Estos datos son recogidos en el código a través de un nombre único que han recibido:\\
+\begin{lstlisting}[style=ES6, caption={Variables correspondientes a los tres campos}]
+const addressInput = document.querySelector('#address');
+const cityInput = document.querySelector('#city');
+const postalInput = document.querySelector('#postal');
+\end{lstlisting}
+
+Una vez que tenemos estos datos recogidos en las variables, podemos pedir a la API de Google Maps las coordenadas de latitud y longitud de dicho emplazamiento encadenando las tres variables y una clave única de identificación,  para obtener un enlace único que se corresponde a dicha localización.
+\newpage
+\begin{lstlisting}[style=ES6, label={lst:getCoordinates}, caption={Función encargada de solicitar los datos a la API}]
+const getCoordinates = async () => {
+	const address = addressInput.value.split(' ').join('+');
+	const city = cityInput.value;
+	const postal = postalInput.value;
+	const requestURL = `${googleEndpoint}address=${address},${city},${postal}
+										,spain&key=${googleApiKey}`;
+	const response = await fetch(requestURL);
+	const data = await response.json();
+	const info = {
+		formattedAdress: data.results[0].formatted_address,
+		lat: data.results[0].geometry.location.lat,
+		long: data.results[0].geometry.location.lng
+	};
+
+	return info;
+};
+\end{lstlisting}
+
+La función de \textbf{getCoordinates} (\ref{lst:getCoordinates}) recoge el valor de la dirección y reemplaza los espacios con el signo + (formato requerido por la API) y lo concatena con el valor del campo de la ciudad y el código postal. Al final le añade una clave única que identifica la aplicación a la hora de establecer limites de uso y evitar abuso de la API.\\
+
+Una vez creado este enlace único, el código lanza la petición al servicio y retorna con la información que es recogida y se guarda en dos variables \textbf{lat} y \textbf{long} para ser utilizadas posteriormente, a la hora de obtener los datos de irradiación global.
+
+\subsection{Área, inclinación, orientación y nivel de suciedad de la superficie de instalación}
+
+Además de las información de latitud y longitud del emplazamiento, el cálculo de la instalación también requiere de información relacionada con el área, la inclinación, la orientación y el nivel de suciedad de la superficie donde se va a realizar la instalación, para poder realizar una estimación lo mas exacta posible.
+
+Estos valores son recogidos directamente de los campos de la pagina web, al igual que los campos anteriores, sin necesitar ningún trato especial:
+\newpage
+\begin{lstlisting}[style=ES6, caption={Variables correspondientes a los campos indicados}]
+const slope = document.querySelector('#slope');
+const area = document.querySelector('#area');
+const orientation = document.querySelector('#orientation');
+const dirtLevel = document.querySelector('#dirt-level');
+\end{lstlisting}
