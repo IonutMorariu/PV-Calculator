@@ -155,3 +155,39 @@ const area = document.querySelector('#area');
 const orientation = document.querySelector('#orientation');
 const dirtLevel = document.querySelector('#dirt-level');
 \end{lstlisting}
+
+\subsection{Obtención de la información de radiación global en el plano horizontal}
+
+En la sección teórica se menciona brevemente como se obtuvo la radiación global en el plano horizontal de manera dinámica en función de la latitud y longitud del emplazamiento.
+
+En ésta sección se va a llevar a cabo un desarrollo más extenso del proceso que se llevó a cabo para poder tener acceso a la información.
+
+El proceso comienza con la búsqueda de una fuente de la radiación global. Investigando las diferentes posibilidades, surge la página de ADRASE, un proyecto fundado por el Gruo de Radiación Solar del CIEMAT. En la página web \footnote{ \textbf{ADRASE}: \url{http://www.adrase.com/el-proyecto.html}} se puede encontrar una descripción detallada acerca del proyecto.
+
+En la página de ADRASE podemos encontrar un mapa interactivo de la península, en la que haciendo clic en cualquier punto, nos aparece un enlace con los datos mensuales de radiación, como se puede observar en la figura \ref{fig:mapa_adrase}.
+
+\begin{figure}[ht]
+\includegraphics[scale=0.5]{Mapa_ADRASE}
+\centering
+\caption{Mapa interactivo de radiación
+\label{fig:mapa_adrase}}
+\end{figure}
+
+Sin embargo, éste mapa no permite tener un acceso dinámico a la información, sin la interacción de un usuario. Además el servicio de ADRASE no ofrece un punto de acceso a los datos, por tanto, la descarga de datos se tiene que hacer previamente y almacenar los datos en la base de datos del servidor.
+
+Cuando se hace clic en el enlace de datos mensuales de radiación global, aparece una ventana emergente con los datos del emplazamiento, como el de la figura \ref{fig:popup_rad}.
+
+\begin{figure}[ht]
+\includegraphics[scale=0.5]{pop_rad}
+\centering
+\caption{Ventana emergente
+\label{fig:pop_rad}}
+\end{figure}
+
+La ventana emergente tiene un enlace personalizado de tal manera que pueda generar la información de ese localización concreta. En enlace contiene dos variables que hacen referencia a la latitud y la longitud:
+
+\begin{lstlisting}[style=ES6, caption={Enlace tipo de la radiación en la peninsula}]
+www.adrase.com/adrasemaps/php/monthly_popup.php?lat=39.12&lon=-3.92&var_tipe=0
+\end{lstlisting}
+
+Por tanto, si generamos un enlace con la latitud y la longitud del emplazamiento, podemos obtener una ventana emergente como la que se muestra en la figura \ref{fig:pop_rad}. Sin embargo, obtener los datos de radiación no es una tarea inmediata. Es necesario procesar el documento y extraer los valores deseados.
