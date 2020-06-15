@@ -58,21 +58,6 @@ Para calcular esta irradiación diaria, debemos calcular primero los diferentes 
 \item $B_{0} = 1367 \frac{W}{m^2}$
 \item Factor de corrección por excentricidad: $\epsilon_0 = 1 + 0,033 \cdot \cos(2 \pi d_n / 365)$
 
-Se puede llegar a demostrar que la media mensual de la irradiación diaria coincide en valor con la irradiación diaria de un día denominado día promedio.Por tanto, podemos calcular el valor medio mensual de la irradiación diaria extra-atmosférica con el valor de la declinación de uno de los doce días promedio.
-
-Estos doce días promedios son:
-
-\begin{table}[ht]
-\label{tab:dias_promedio}
-\centering
-\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
-\hline
-Mes   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sep & Oct & Nov & Dic \\ \hline
-$d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 & 347  \\ \hline
-\end{tabular}
-\caption{Días promedio}
-\end{table}
-
 En código se representa de la siguiente manera:
 \begin{lstlisting}[style=ES6, caption={Factor de corrección por excentricidad}]
 		const exct = 1 + 0.033 * Math.cos((2 * Math.PI * elem.normalDay) / 365)
@@ -85,7 +70,8 @@ En código se representa de la siguiente manera:
 \end{lstlisting}
 \item Cenit Solar: $\cos(\theta_{zs}) = \cos(\delta)\cos(\omega)\cos(\phi) + \sin(\delta)sin(\phi)$\\
 
-Para el calculo del cenit solar, hay que tener en cuenta que varía en función de la hora del día, así que se deberá calcular un valor para cada una de las 24h del día, con la diferencia de que en el cálculo, las horas irán de -12 a 12 en lugar de 0 a 23 y además, tendremos que convertir las horas a ángulos multiplicando por 15$\degree$. De tal manera, que en código, el calculo del cenit solar, tendrá ésta representación:\\
+Para el calculo del cenit solar, hay que tener en cuenta que varía en función de la hora del día, así que se deberá calcular un valor para cada una de las 24h del día, con la diferencia de que en el cálculo, las horas irán de -12 a 12 en lugar de 0 a 23 y además, tendremos que convertir las horas a ángulos multiplicando por 15$\degree$. De tal manera, que en código, el calculo del cenit solar, tendrá ésta representación:
+\newpage
 \begin{lstlisting}[style=ES6, caption={Cálculo del cenit solar}]
 		for (let h = -12; h < 12; h++) {
 			const cosZenit =
@@ -102,6 +88,21 @@ Como se puede observar, la irradiancia extra-terrestre solo requiere de consider
 B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\cos\delta\sin\omega_s)
 \end{equation}\\
 
+Se puede llegar a demostrar que la media mensual de la irradiación diaria coincide en valor con la irradiación diaria de un día denominado día promedio.Por tanto, podemos calcular el valor medio mensual de la irradiación diaria extra-atmosférica con el valor de la declinación de uno de los doce días promedio.
+
+Estos doce días promedios son:
+
+\begin{table}[ht]
+\label{tab:dias_promedio}
+\centering
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+\hline
+Mes   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sep & Oct & Nov & Dic \\ \hline
+$d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 & 347  \\ \hline
+\end{tabular}
+\caption{Días promedio}
+\end{table}
+
 Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$:
 \begin{lstlisting}[style=ES6, caption={Ecuación para B0d0}]
 		const B0d0 =
@@ -112,6 +113,7 @@ Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valo
 				Math.cos(deg2rad(elem.decl)) * Math.cos(deg2rad(newData.latitude)) * 
 				Math.sin(elem.ws))
 \end{lstlisting}
+\newpage
 donde:
 \begin{itemize}
 \item B0: valor contante de 1367 $W/m^2$
@@ -354,7 +356,9 @@ Estos componentes sumados, forman la expresión de la irradiancia global en el p
 G(\beta,\alpha)=D(\beta,\alpha)+B(\beta,\alpha)+R(\beta,\alpha)
 \end{equation}
 
-En la ecuación de la irradiancia directa, uno de los elementos que influyen en el cálculo es el angulo de incidencia, cuya expresión es:
+\subsubsection{Ángulo de incidencia}
+
+En la ecuación de la irradiancia directa, uno de los elementos que influyen en el cálculo es el angulo de incidencia (Pág. 14 \cite{esf_book}), cuya expresión es:
 \begin{equation} \label{eqn:ang_incid}
 \begin{split}
 \cos(\theta_s)=sign(\phi)\cdot [ \sin(\beta)\cos(\alpha)\cos(\delta)\sin(\phi)- \\
@@ -364,6 +368,7 @@ En la ecuación de la irradiancia directa, uno de los elementos que influyen en 
 +\cos(\beta)\sin(\delta)\sin(\phi) \\
 \end{split}
 \end{equation}
+\newpage
 Donde:
 \begin{itemize}
 \item \textbf{$\beta$}: Inclinación del generador
@@ -372,7 +377,6 @@ Donde:
 \item \textbf{$\delta$}: Declinación
 \item \textbf{$\omega$}: Hora solar
 \end{itemize}
-\newpage
 Traducida a código, la expresión será:
 \begin{lstlisting}[style=ES6, caption={Cálculo del ángulo de incidencia}]
 		for (let h = -12; h < 12; h++) {
@@ -397,6 +401,8 @@ Traducida a código, la expresión será:
 			}
 \end{lstlisting}
 \newpage
+\subsubsection{Cálculo de las componentes}
+
 Teniendo el valor del ángulo de incidencia, podemos proceder a calcular las dos componentes de irradiancia para el plano del generador.
 
 \begin{lstlisting}[style=ES6, caption={Cálculo del ángulo de incidencia}]
@@ -465,7 +471,6 @@ A la hora de aplicar dichas pérdidas a la componente difusa, debemos calcular c
 \begin{equation}
 FT_D \simeq exp[-\frac{1}{a_r}\cdot(c_1\cdot(\sin\beta + \frac{\pi-\beta-\sin\beta}{1+\cos\beta	})+c_2\cdot(\sin\beta + \frac{\pi-\beta-sin\beta}{1+\cos\beta})^2)]
 \end{equation}
-\newpage
 Para estas componentes el cálculo de irradiancia efectiva es similar al de la irradiancia directa. Para la componente difusa circunsolar emplearemos el factor de pérdidas angulares de la irradiancia efectiva:
 
 \begin{equation}
@@ -504,6 +509,7 @@ Para ello, aplicamos este algoritmo a los datos calculados anteriormente
 	})
 \end{lstlisting}
 Como se observa, los valores horarios menores al amanecer, en valor absoluto, no se introducen en la lista de valores significativos.
+\newpage
 
 \section{Cálculo de la energía producida por el generador}
 
@@ -531,13 +537,11 @@ A diferencia de un sistema autónomo o de bombeo, el diseño de SFCR no necesita
 A la hora de estimar la energía producida por un SFCR, debemos definir las características nominales de los componentes que forman parte de este, como se muestra en la figura \ref{fig:sfcr}.
 Con el objetivo de reducir al máximo la complejidad de la aplicación de cara al usuario final (cuyos conocimientos de fotovoltaica, de media, serán reducidos) se han fijado unos valores estándar para el módulo fotovoltaico, la configuración del generador y el inversor.
 
-\newpage
-
 Estos valores se muestran en las siguientes tablas:
 \begin{itemize}
-\item \textbf{Configuración del módulo} El módulo elegido es uno disponible comercialmente, fabricado por JINKO SOLAR, modelo JKM320PP \footnote{\textit{Módulos solar JINKO SOLAR, modelo JKM320PP \url{https://autosolar.es/pdf/Ficha-Tecnica-Jinko-Solar-305-320W.pdf}}}
+\item \textbf{Configuración del módulo} El módulo elegido es uno disponible comercialmente, fabricado por JINKO SOLAR, modelo JKM320PP \footnote{\textit{Módulos solar JINKO SOLAR, modelo JKM320PP \url{https://autosolar.es/pdf/Ficha-Tecnica-Jinko-Solar-305-320W.pdf}}}. El área del modulo es de $1,957 \times 0,922 m^2$ y tiene una potencia nominal de $320 W_p$
 
-\begin{table}[ht]
+\begin{table}[htbp]
 \centering
 \begin{tabular}{llll}
 \hline
@@ -552,8 +556,6 @@ TONC             & 45 $\degree$             \\
 T_c              & 25 $\degree$             \\
 V_t              & 0,025V	                \\
 m                & 1,3                      \\
-Área modulo      & $1,957 \times 0,992 m^2$ \\
-Potencia Nominal & 320 Wp                   \\  
 \end{tabular}
 \caption{Configuración módulo standard \label{tab:module_conf}}
 \end{table}
@@ -582,7 +584,7 @@ V_{max}  & 750
 
 Para poder llevar a cabo la estimación de la energía producida por el generador, debemos conocer como influye factores como la radiación o la temperatura en una célula solar y en los valores de tensión y corriente que se alcanzan en dichas condiciones.
 
-Existen dos puntos clave que definen una célula solar, la corriente de cortocircuito ($I_{sc}$) y la tensión de circuito abierto ($V_{oc}$). 
+Existen cuatro puntos clave que definen una célula solar, la corriente de cortocircuito ($I_{sc}$), la tensión de circuito abierto ($V_{oc}$) y la corriente y tensión en el punto de máxima potencia
 
 \subsubsection{Punto de máxima potencia}
 
@@ -613,7 +615,9 @@ El aumento de la temperatura tiene una influencia notable en la tensión de circ
 \frac{dV_{oc}}{dT_c}=-2,3\frac{mV}{ \circ C}
 \end{equation}
 
-Sin embargo, el efecto que tiene la irrandiancia sobre la tensión de circuito abierto es mucho menor que el de la temperatura. En el caso de éste proyecto, no se tendrá en cuenta dicha influencia.
+Sin embargo, el efecto que tiene la irradiancia sobre la tensión de circuito abierto es mucho menor que el de la temperatura. En el caso de éste proyecto, no se tendrá en cuenta dicha influencia.
+
+Sin embargo, como se verá más adelante,en la sección \ref{section:calc_voc_isc}, la radiación afecta a la corriente de cortocircuito, siendo de hecho el factor más significativo en la ecuación.
 
 \subsection{Comportamiento térmico de un módulo}
 \label{section:term_behaviour}
@@ -738,33 +742,31 @@ En código sería:
 		const TCProfile = hourlyTa.map((temp, indexB) => {
 			const Gef = meanValue.hourlyValues[indexB].Gtilt * 1000;
 			const Tc = temp + (Gef * (moduleData.TONC - 20)) / 800; 
-			return Tc;
-		});
-		return { TCProfile, month: index + 1, Tmax, Tmin };
-	});
+			return Tc; });
+		return { TCProfile, month: index + 1, Tmax, Tmin }; });
 \end{lstlisting}
 
 Como se observa en el código, para cada uno de los valores horarios utilizamos la $G_{ef}$ en el plano inclinado (en el código aparece como \textit{Gtilt}) y la temperatura ambiente calculada anteriormente ( en el código es \textit{temp} ) para calcular la $T_c$.
-
 \subsubsection{Cálculo de $V_{oc}$ y $I_{sc}$}
+\label{section:calc_voc_isc}
 
 Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn:V_oc_cs}.
+\begin{equation}
 \label{eqn:V_oc_cs}
 V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c} \cdot N_{cs}
 \end{equation}
-que en código quedaría de la siguiente forma:
+
+En código quedaría de la siguiente forma:
 \begin{lstlisting}[style=ES6, caption={Cálculo de la tensión de circuito abierto}]
 	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
 		const VocArray = TCProfile.map((temp) => {
 			const Voc = moduleData.VocStar + (temp - moduleData.Tc) 
 			* (-2.3 / 1000) * moduleData.Ncs;
 			return Voc;
-		});
-		return VocArray;
-	});
-
+		 });
+		return VocArray
+	 });
 \end{lstlisting}
-\newpage
 Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$ que depende linealmente del valor de irradiancia según se indica en la expresión \ref{eqn:I_sc} que en código resulta de la siguiente forma:
 
 \begin{equation}
@@ -827,7 +829,7 @@ En código quedaría:
 \begin{equation}
 r_s = R_s^* \cdot \left( \frac{N_{cs}}{N_{cp}} \cdot \frac{I_{sc}}{V_{oc}}}\right)
 \end{equation}
-y el equivalente en código es
+El equivalente en código es
 \begin{lstlisting}[style=ES6, caption={Cálculo de $r_s$}]
 	const rs = VocProfile.map((VocArray, arrIndex) => {
 		return VocArray.map((VocValue, valIndex) => {
@@ -854,7 +856,7 @@ En código tendría este forma:
 \end{lstlisting} 
 \end{enumerate}
 
-Con éstos cálculos previos, éste método propone localizar el punto de máxima potenica de forma aproximada mediante las ecuaciones:
+Con éstos cálculos previos, éste método propone localizar el punto de máxima potencia de forma aproximada mediante las ecuaciones:
 \begin{equation}
 i_{mpp} = 1 - \frac{D_M}{k_{oc}}
 \end{equation}
@@ -897,6 +899,7 @@ En código el proceso a seguir para llegar a los dos valores de $i_{mpp}$ y $v_{
 	});
 \end{lstlisting} 
 
+
 \begin{lstlisting}[style=ES6, caption={Cálculo de $v_{mpp}$}]
 	const vmpp = impp.map((imppArray, arrIndex) => {
 		return imppArray.map((imppValue, valIndex) => {
@@ -908,7 +911,6 @@ En código el proceso a seguir para llegar a los dos valores de $i_{mpp}$ y $v_{
 \end{lstlisting} 
 
 Por último, multiplicando los valores de $i_{mpp}$ y $v_{mpp}$ por $I_{sc}$ y $V_{oc}$ respectivamente, obtendremos los valores de $I_{mpp}$ y $V_{mpp}$ que serán los que utilizaremos para calcular la potencia entregada por el generador en el punto de máxima potencia.
-
 \begin{lstlisting}[style=ES6, caption={Cálculo de $V_{mpp}$ y $I_{mpp}$}]
 	const Vmpp = vmpp.map((vmppArray, arrIndex) => {
 		return vmppArray.map((vmppValue, valIndex) => {
@@ -924,7 +926,6 @@ Por último, multiplicando los valores de $i_{mpp}$ y $v_{mpp}$ por $I_{sc}$ y $
 \end{lstlisting} 
 
 Una vez calculados los valores de $I_{mpp}$ y $V_{mpp}$ podemos pasar a obtener los valores horarios de la potencia en el MPP, simplemente multiplicando los valores de corriente y tensión: $P_{mpp} = I_{mpp} \cdot V_{mpp}$.
-\newpage
 
 \begin{lstlisting}[style=ES6, caption={Cálculo de $P_{mpp}$}]
 	const calculatePmpp = (ImppProfile, VmppProfile) => {
@@ -938,6 +939,7 @@ Una vez calculados los valores de $I_{mpp}$ y $V_{mpp}$ podemos pasar a obtener 
 	};
 
 \end{lstlisting} 
+\newpage
 
 \subsection{Cálculo final de potencias y energías}
 
@@ -1029,6 +1031,7 @@ const calculatePoProfile = (PiProfile) => {
 	});
 };
 \end{lstlisting}
+\newpage
 
 \item \textbf{Cálculo de $P_{inv}$}: Habiendo calculado la $p_o$, podemos despejar la potencia generada por el generador ($P_{inv}$) de la ecuación \ref{eqn:p_o}:
 
@@ -1073,8 +1076,7 @@ const calculateMonthlyEdc = (PdcProfile) => {
 const calculateAnualEnergy = (MonthlyEnergy) => {
 	return MonthlyEnergy.reduce((total, currentValue) => {
 		return total + (currentValue > 0 ? currentValue : 0);
-	}, 0);
-};
+	}, 0); };
 \end{lstlisting}
 
 
