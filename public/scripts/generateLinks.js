@@ -2,10 +2,12 @@ const minLat = 36.1;
 const maxLat = 43.63;
 const minLon = -9.15;
 const maxLon = 3.06;
+const latDiff = 0.25;
+const lonDiff = 0.25
 const links = [];
 let data = [];
-for (let i = minLat; i <= maxLat; i += 0.25) {
-	for (let j = minLon; j <= maxLon; j += 0.25) {
+for (let i = minLat; i <= maxLat; i += latDiff) {
+	for (let j = minLon; j <= maxLon; j += lonDiff) {
 		const lon = j.toFixed(2);
 		const lat = i.toFixed(2);
 		links.push(
