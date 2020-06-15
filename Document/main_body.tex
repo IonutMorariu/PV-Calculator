@@ -1,5 +1,5 @@
 
-El proceso de cálculo que se va a seguir para la estimación completa de la instalación fotovoltaica conectada a red es el que se detalla en el libro de Óscar Perpiñán, tutor de este trabajo, denominado Energía Solar Fotovoltaica \cite{esf_book}. También se harán menciones a las presentaciones que se encuentran en el mismo enlace que el libro.\\
+El proceso de cálculo que se va a seguir para la estimación completa de la instalación fotovoltaica conectada a red es el que se detalla en el libro de Oscar Perpiñán, tutor de este trabajo, denominado Energía Solar Fotovoltaica \cite{esf_book}. También se harán menciones a las presentaciones que se encuentran en el mismo enlace que el libro.\\
 
 A lo largo de este capítulo, se utilizará el término \textbf{aplicación} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
 
@@ -8,7 +8,7 @@ A continuación se muestra un diagrama que resume los pasos del proceso que se h
 \begin{figure}[ht]
 \includegraphics[scale=0.8]{diag_procedimiento_calculo}
 \centering
-\caption{Procedimiendo de cálculo}
+\caption{Procedimiento de cálculo}
 \label{fig:diag_procedimiento_calculo}
 \end{figure}
 
@@ -19,9 +19,9 @@ Los pasos que se muestran en el diagrama son:
 	\item Convertir la irradiación diaria a un perfil horario de irradiación global, directa y difusa en en plano horizontal.
 	\item Pasar del perfil horario en el plano horizontal a un perfil con la inclinación y orientación indicada por el usuario.
 	\item Aplicar las pérdidas relacionadas con el ángulo de incidencia y el nivel de suciedad.
-	\item Volver a convertir el perfil horario a unos valores diarios de irradiación global, difusa y directa.
-	\item Calcular la potencia en corriente continua entregada por el generador
-	\item Convertir la potencia en corriente alterna a través de inversor 
+	\item Calcular la potencia en corriente continua entregada por el generador.
+	\item Convertir la potencia en corriente alterna a través de inversor.
+	\item Realizar un sumatorio de las potencias en corriente alterna para obtener la energía entregada.
 \end{enumerate}
 
 \section{Naturaleza de la radiación solar}
@@ -34,7 +34,7 @@ Para el cálculo de la radiación solar que finalmente incide en una área concr
 \item \textbf{Radiación del albedo, $R$:} es aquella fracción de la radiación procedente de la reflexión con el suelo. Habitualmente, supone una contribución muy pequeña, que en algunos casos, como el de este proyecto, puede ser despreciada. Normalmente se toma en consideración en áreas con altos indices de reflexión como aquellos con temporadas largas de nieve.
 \end{itemize}
 
-La suma de las tres componentes constituyen la denominada radiación global:
+La suma de las tres componentes constituye la denominada radiación global:
 \begin{equation}
 G=B+D+R
 \end{equation}
@@ -70,7 +70,7 @@ Estos doce días promedios son:
 Mes   & Ene & Feb & Mar & Abr & May & Jun & Jul & Ago & Sep & Oct & Nov & Dic \\ \hline
 $d_n$ & 17  & 45  & 74  & 105  & 135  & 161  & 199  & 230  & 261  & 292  & 322 & 347  \\ \hline
 \end{tabular}
-\caption{Dias promedio}
+\caption{Días promedio}
 \end{table}
 
 En código se representa de la siguiente manera:
@@ -103,7 +103,7 @@ B_{0d}(0)=-\frac{T}{\pi}B_0\epsilon_0·(\omega_s\sin\phi\sin\delta + \cos\phi\co
 \end{equation}\\
 
 Aplicando estos cálculos a la ecuación \ref{eqn:B0d0} podemos calcular el valor de la irradiancia extra-terrestre diaria $B_{0d}(0)$:
-\begin{lstlisting}[style=ES6, caption={Equación para B0d0}]
+\begin{lstlisting}[style=ES6, caption={Ecuación para B0d0}]
 		const B0d0 =
 			-(24 / Math.PI) *
 			B0 *
@@ -125,7 +125,7 @@ donde:
 \label{section:radiation_components}
 
 
-Para poder calcular la energía producida por un generador fotovoltaico, se necesita conocer la radiación solar que incide sobre la superficie de dicho generador. En éste caso las caracteristicas del generador vienen indicadas por el usuario de la aplicación, por tanto, debemos recoger dicha información. La información necesaria para conocer la radiación que incide en la superficie son:
+Para poder calcular la energía producida por un generador fotovoltaico, se necesita conocer la radiación solar que incide sobre la superficie de dicho generador. En éste caso las características del generador vienen indicadas por el usuario de la aplicación, por tanto, debemos recoger dicha información. La información necesaria para conocer la radiación que incide en la superficie son:
 \begin{itemize}
 \item \textbf{Latitud y longitud del emplazamiento}: La ruta que se ha tomado para obtener estos datos, es la de pedirle al usuario su dirección, o una dirección cercana a su localización, y utilizar la API de Google Maps \footnote{\textit{API Google Maps}: Enlace interactivo al que se le pueden enviar los datos de una dirección y devuelve las coordenadas de latitud y longitud de un emplazamiento.  } para convertir dicha dirección en las coordenadas de latitud y longitud que se necesitan para poder extraer la irradiación mencionada anteriormente.\\
 \item \textbf{Orientación, inclinación y nivel de suciedad de la superficie}: Estos valores son recogidos directamente de los campos de la pagina web, sin necesitar ningún trato especial.
@@ -144,9 +144,11 @@ A continuación, se va a obtener la irradiación para las dichas coordenadas uti
 Los datos están disponibles a través de un mapa interactivo y de unos enlaces personalizados que incluyen la valores de latitud y longitud para los que se desea obtener dicha información. En esos enlaces se ofrecen los datos de irradiación global mínima, media y máxima en el plano horizontal.
 
 Con el objetivo de no saturar la pagina de ADRASE y evitar errores de funcionamiento de la aplicación debidos a la posibilidad de que la página desaparezca en un futuro, se ha realizado una descarga de los datos de la página, con un intervalo de 0.1 $\degree$ tanto en longitud como en latitud y se han guardado en una base de datos.De esta forma también se reducen los tiempos de cálculo en gran medida al tener un acceso casi instantáneo a los valores medios de irradiación. 
-Una explicación detallada de como se ha realizado dicha descarga se incluye en el Anexo. ( ** TO DO Anexo con explicación **).
+Una explicación detallada de como se ha realizado dicha descarga se incluye en el la sección \ref{section:adrase_web} del Anexo I.
 
 Una vez obtenida la radiación global media para los doce meses, en el emplazamiento indicado, se puede comenzar el proceso de obtención de las componentes de ésta.
+
+\subsubsection{Obtención de las componentes de radiación global}
 
 En 1960, Liu y Jordan \cite{lj60} expusieron una forma de caracterizar la radiación solar en un lugar, mediante el indice de claridad $K_T$. Éste índice relaciona la radiación global y la extra-terrestre, ambas en el plano horizontal. La expresión de el indice de claridad diario es:\\
 
@@ -331,7 +333,7 @@ El planteamiento de ésta transformación es el siguiente:
 \label{eqn:B_beta_alpha}
 B(\beta,\alpha) = B(0) \cdot \frac{max(0,\cos(\theta_s))}{\cos(\theta_{zs})}
 \end{equation}
-\item \textbf{Irradiancia Directa $D(\beta,\alpha)$:} Utilizando el modelo de cielo anisotrópico, se distinguen dos componentes de la irradiancia directa, denominados \textit{circunsolar} e \textit{isotrópica}.
+\item \textbf{Irradiancia Difusa $D(\beta,\alpha)$:} Utilizando el modelo de cielo anisotrópico (Pág 31 \cite{esf_book}), se distinguen dos componentes de la irradiancia difusa, denominados \textit{circunsolar} e \textit{isotrópica}.
 \begin{equation}
 D(\beta,\alpha) = D^I(\beta,\alpha)+D^C(\beta,\alpha)
 \end{equation}
@@ -611,18 +613,12 @@ El aumento de la temperatura tiene una influencia notable en la tensión de circ
 \frac{dV_{oc}}{dT_c}=-2,3\frac{mV}{ \circ C}
 \end{equation}
 
-\subsubsection{Cálculo del punto de máxima potencia}
-
-Anteriormente, se ha mostrado la relación entre la temperatura y la irrandiancia con la tension de \textit{circuito abierto} $V_{oc}$ y la corriente de \textit{cortocircuito} $I_{sc}$. Además, los fabricantes suelen incluir estos dos valores en el punto de máxima potencia en las condiciones estándar de medida.
-
-Por tanto, para poder estimar el comportamiento de la célula en otras condiciones, es necesario trasladar estos parámetros a los valores de temperatura e irradiancia en dicha situación.\\
-
-El procedimiento de cálculo consistirá en comenzar asumiendo que el factor de forma es constante, para calcular los valores de $I_{sc}$ y $V_{oc}$ en las condiciones de temperatura y radiación del emplazamiento. Posteriormente realizaremos los cálculos para tomar en cuenta la variación del factor de forma.
+Sin embargo, el efecto que tiene la irrandiancia sobre la tensión de circuito abierto es mucho menor que el de la temperatura. En el caso de éste proyecto, no se tendrá en cuenta dicha influencia.
 
 \subsection{Comportamiento térmico de un módulo}
 \label{section:term_behaviour}
 
-La mayoría de las ecuaciones que definen el comportamiento de un módulo fotovoltoico se establecen en lo que se conocen como condiciones estándar de funcionamiento. En estas condiciones, la temperatura de la célula es de $25\degree C$. Sin embargo, la temperatura de operación de la célula es diferente y depende directamente de la radiación que recibe el módulo en cada momento
+La mayoría de las ecuaciones que definen el comportamiento de un módulo fotovoltaico se establecen en lo que se conocen como condiciones estándar de funcionamiento. En estas condiciones, la temperatura de la célula es de $25\degree C$. Sin embargo, la temperatura de operación de la célula es diferente y depende directamente de la radiación que recibe el módulo en cada momento
 
 El módulo recibe una cantidad de radiación dada, absorbiendo la fracción de ésta que no se refleja al exterior. De dicha fracción parte es transformada en energía eléctrica mientras que el resto se entrega en forma de calor al entorno.
 
@@ -646,7 +642,7 @@ T_c = T_a + \frac{G_{ef}\cdot(TONC - 20)}{800}
 
 Como se puede observar, en la temperatura de la célula influyen tanto la temperatura ambiente como la radiación global eficaz. Al trabajar con valores horarios, es necesario conocer el valor de la temperatura ambiente en cada hora del día.
 
-
+\subsubsection{Cálculo del perfil horario de temperaturas}
 
 El procedimiento para calcular los valores de temperatura ambiente horarios para cada uno de los meses en el emplazamiento indicado por el usuario no es trivial pues normalmente no suele haber un registro histórico de temperaturas. Para ello vamos a utilizar el proceso descrito en el documento \cite{temp_paper}.
 
@@ -706,7 +702,7 @@ T_3 = T_m - Tr \cdot cos(a_3)
 \item \textbf{Selección del valor clave}: en la matriz de temperatura ambiente introduciremos uno de los tres valores en función de si el ángulo solar es menor al del amanecer, si está entre en amanecer y $\frac{\pi}{4}$ o si es menor que $\frac{\pi}{4}$.
 
 \end{enumerate}
-\newpage
+
 En código, todo este proceso toma la siguiente forma:
 \begin{lstlisting}[style=ES6, caption={Cálculo de la temperatura ambiente}]
 	const wp = Math.PI / 4;
@@ -735,7 +731,6 @@ En código, todo este proceso toma la siguiente forma:
 \end{lstlisting}
 
 Habiendo obtenido la matriz de temperatura ambiente, el siguiente paso es utilizar estos valores para calcular la temperatura de la célula $T_c$ con la ecuación \ref{eqn:T_c} necesaria para calcular la tensión de circuito abierto $V_{oc}$.
-\newpage
 En código sería:
 \begin{lstlisting}[style=ES6, caption={Cálculo de la temperatura de célula}]
 	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, indexA) => {
@@ -751,8 +746,9 @@ En código sería:
 
 Como se observa en el código, para cada uno de los valores horarios utilizamos la $G_{ef}$ en el plano inclinado (en el código aparece como \textit{Gtilt}) y la temperatura ambiente calculada anteriormente ( en el código es \textit{temp} ) para calcular la $T_c$.
 
-Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn:V_oc_cs} que, como se puede observar es la misma que \ref{eqn:V_oc} pero añadiendo el número de células en serie para convertirlo a tensión del módulo
-\begin{equation}
+\subsubsection{Cálculo de $V_{oc}$ y $I_{sc}$}
+
+Conociendo ya los valores horarios de temperatura de la célula, procedemos a calcular la tensión de circuito abierto $V_{oc}$ utilizando la expresión \ref{eqn:V_oc_cs}.
 \label{eqn:V_oc_cs}
 V_{oc}(T_c) = V_{oc}^* + (T_c - T_c^*) \cdot \frac{dV_{oc}}{dT_c} \cdot N_{cs}
 \end{equation}
@@ -764,12 +760,17 @@ que en código quedaría de la siguiente forma:
 			* (-2.3 / 1000) * moduleData.Ncs;
 			return Voc;
 		});
-		5return VocArray;
+		return VocArray;
 	});
 
 \end{lstlisting}
 \newpage
 Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$ que depende linealmente del valor de irradiancia según se indica en la expresión \ref{eqn:I_sc} que en código resulta de la siguiente forma:
+
+\begin{equation}
+\label{eqn:I_sc}
+I_{sc} = G_{ef} \cdot  \frac{I_{sc}^*}{G^*}
+\end{equation}
 
 \begin{lstlisting}[style=ES6, caption={Cálculo de la corriente de cortocircuito}]
 	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
@@ -784,7 +785,11 @@ Por último, podemos calcular el valor de la corriente de cortocircuito $I_{sc}$
 \subsubsection{Factor de forma variable}
 \label{section:var_form_factor}
 
-Los cálculos anteriores se han realizado suponiendo que el factor de forma $FF$ es constante, por tanto, de la expresión \ref{eqn:FF}, si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
+Una vez obtenidos los valores de $V_{oc}$ y $I_{sc}$, el siguiente paso ha de ser calcular los valores de tensión y corriente en el punto de máxima potencia, pues es donde el generador estará entregando su máxima potencia, como su propio nombre indica, y por tanto es un punto de interés para el cálculo.
+
+Existen dos metodologías de cálculo de dicho punto, uno de ellos significantemente más sencillo que el otro. Éste consiste en suponer que el Factor de Forma, definido en la expresión \ref{eqn:FF} es constante.
+
+Si suponemos que FF es constante, se podrían extraer los valores de tensión y corriente en el punto de máxima potencia ya que si
 \begin{equation}
 FF = FF^*
 \end{equation}
@@ -794,8 +799,6 @@ entonces
 \end{equation}
 
 pudiendo así obtener los valores de $I_{mpp}$ y $V_{vmpp}$.
-
-Estos cálculos se realizaron como una primera aproximación que sirvió para comprobar si el proceso de cálculo de la radiación eficaz incidente eran correcto.
 
 Sin embargo, hacer esta suposición nos aleja en cierta manera de ofrecer una estimación los más próxima a la realidad posible.
 
@@ -981,7 +984,7 @@ Si despejamos las dos ecuaciones anteriores:
 p_i = p_o + k_0 + k_1p_o + k_2p_o^2
 \end{equation}
 
-A partir de la expresión anterior obtenemos una ecuación de segundo grado con $p_o$ como incognita:
+A partir de la expresión anterior obtenemos una ecuación de segundo grado con $p_o$ como incógnita:
 \begin{equation}
 k_2p_o^2 + (k_1 + 1)p_o + (k_0 - p_i) = 0
 \end{equation}

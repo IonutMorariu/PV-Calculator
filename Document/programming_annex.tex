@@ -156,7 +156,7 @@ const orientation = document.querySelector('#orientation');
 const dirtLevel = document.querySelector('#dirt-level');
 \end{lstlisting}
 
-\subsection{Obtención de la información de radiación global en el plano horizontal}
+\subsection{Obtención de la información de radiación global en el plano horizontal \label{section:adrase_web}}
 
 En la sección teórica se menciona brevemente como se obtuvo la radiación global en el plano horizontal de manera dinámica en función de la latitud y longitud del emplazamiento.
 
@@ -166,7 +166,7 @@ El proceso comienza con la búsqueda de una fuente de la radiación global. Inve
 
 En la página de ADRASE podemos encontrar un mapa interactivo de la península, en la que haciendo clic en cualquier punto, nos aparece un enlace con los datos mensuales de radiación, como se puede observar en la figura \ref{fig:mapa_adrase}.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \includegraphics[scale=0.5]{Mapa_ADRASE}
 \centering
 \caption{Mapa interactivo de radiación
@@ -175,9 +175,9 @@ En la página de ADRASE podemos encontrar un mapa interactivo de la península, 
 
 Sin embargo, éste mapa no permite tener un acceso dinámico a la información, sin la interacción de un usuario. Además el servicio de ADRASE no ofrece un punto de acceso a los datos, por tanto, la descarga de datos se tiene que hacer previamente y almacenar los datos en la base de datos del servidor.
 
-Cuando se hace clic en el enlace de datos mensuales de radiación global, aparece una ventana emergente con los datos del emplazamiento, como el de la figura \ref{fig:popup_rad}.
+Cuando se hace clic en el enlace de datos mensuales de radiación global, aparece una ventana emergente con los datos del emplazamiento, como el de la figura \ref{fig:pop_rad}.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \includegraphics[scale=0.5]{pop_rad}
 \centering
 \caption{Ventana emergente
@@ -191,3 +191,112 @@ www.adrase.com/adrasemaps/php/monthly_popup.php?lat=39.12&lon=-3.92&var_tipe=0
 \end{lstlisting}
 
 Por tanto, si generamos un enlace con la latitud y la longitud del emplazamiento, podemos obtener una ventana emergente como la que se muestra en la figura \ref{fig:pop_rad}. Sin embargo, obtener los datos de radiación no es una tarea inmediata. Es necesario procesar el documento y extraer los valores deseados.
+
+El contenido del documento contiene una tabla de html que contiene los valores medios, percentil 25 y percentil 75 de radiación global en el plano horizontal. La parte que necesitamos extraer y procesar es la siguiente:
+
+\begin{lstlisting}[style=ES6, caption={Tabla de valores medios según documento de ADRASE}]
+<tr class="customPeriods">
+			<td align="center"><b>Valor medio  </b></td>
+			<td align="center"><p>2.2</p></td>
+			<td align="center"><p>3.3</p></td>
+			<td align="center"><p>4.8</p></td>
+			<td align="center"><p>6.0</p></td>
+			<td align="center"><p>7.0</p></td>
+			<td align="center"><p>8.0</p></td>
+			<td align="center"><p>7.8</p></td>
+			<td align="center"><p>6.9</p></td>	
+			<td align="center"><p>5.3</p></td>
+			<td align="center"><p>3.7</p></td>
+			<td align="center"><p>2.4</p></td>
+			<td align="center"><p>1.9</p></td>			
+	</tr>				
+\end{lstlisting}
+
+Por tanto, para procesar el documento, lo que haremos es buscar la frase \textit{Valor medio} y eliminar todo lo anterior. A continuación, buscaremos en le document el primer \textit{</tr>} que se encuentro, dado que indicará que se ha terminado la fila, ya que la etiqueta \textit{<tr>} de HTML significa table row.
+
+Una vez aisladas las 12 lineas de código que contienen los 12 valores que nos interesa, usaremos una expresión regular (RegEx \footnote{ \textbf{RegEx:} secuencia de caracteres que conforma un patrón de búsqueda}) para aislar solamente la parte numérica de cada fila.
+
+En código resulta:
+
+\begin{lstlisting}[style=ES6, caption={Proceso de extracción de los valores \label{code:extract_values}}]
+	let texts = [];	
+	if (e.includes('NO HAY DATOS PARA EL PUNTO SELECCIONADO')) {
+		texts.push(null);
+	} else if (e.includes('Valor medio')) {
+		const regex = /[+-]?\d+(\.\d+)?/g;
+		const str = e.split('Valor medio')[1].split('tr')[0];
+		const floats = str.match(regex).map(function(v) {
+			return parseFloat(v);
+		});
+		texts.push(floats);
+		}		
+\end{lstlisting}
+
+En el extracto de código \ref{code:extract_values} se observa, en la primera linea de código, una condición tal que si el documento contiene la frase \textit{NO HAY DATOS PARA EL PUNTO SELECCIONADO}, se evite el proceso de cálculo, ya que ocasiones, para una coordenada en concreto, sobretodo cercanas a la costa, ADRASE no es capaz de entregarnos los datos de radiación.
+
+Sin embargo, si esa frase no existe, significa que sí existen dichos datos y por tanto podemos extraerlos según el proceso detallado.
+
+La función \textit{split()} es la que se ocupa de cortar el documento por el valor indicado, por tanto, como se observa, la utilizamos para cortar por \textit{Valor medio} y por la etiqueta \textit{tr}, quedando solamente las doce filas de valores medios.
+
+Habiendo creado un script capaz de extraer los doce valores necesarios del documento, podemos replicar este proceso todas las veces que sea necesario.
+
+Por tanto, el siguiente paso es llevar a cabo el proceso para una matriz de latitudes y longitudes, y guardar la información en la base de datos. Para ello, se generará un listado de enlaces al que aplicaremos el algoritmo anterior.
+
+El código que utilizaremos para generar los enlaces es:
+
+\begin{lstlisting}[style=ES6, caption={Proceso de generación de enlaces \label{code:generate_links}}]
+	const minLat = 36.1;
+	const maxLat = 43.63;
+	const minLon = -9.15;
+	const maxLon = 3.06;
+	const links = [];
+	const latDiff = 0.25;
+	const lonDiff = 0.25;
+	for (let i = minLat; i <= maxLat; i += 0.25) {
+		for (let j = minLon; j <= maxLon; j += 0.25) {
+			const lon = j.toFixed(2);
+			const lat = i.toFixed(2);
+			links.push(
+				`http://www.adrase.com/adrasemaps/php/monthly_popup.php?
+				lat=${lat}&lon=${lon}&var_tipe=0`
+			);
+		}	
+	}	
+\end{lstlisting}
+
+Las variables que influyen en el bucle de generación de enlaces son:
+
+\begin{itemize}
+\item \textbf{minLat:} Latitud a partir de la cual se comienza a generar los enlaces.
+\item \textbf{maxLat:} Valor máximo de latitud para parar el bucle.
+\item \textbf{minLat:} Longitud a partir de la cual se comienza a generar los enlaces.
+\item \textbf{maxLat:} Valor máximo de longitud para parar el bucle.
+\item \textbf{links:} Un vector o lista para almacenar los enlaces.
+\item \textbf{latDiff:} Diferencia de latitud en grados entre un punto y el siguiente.
+\item \textbf{lonDiff:} Diferencia de longitud en grados entre un punto y el siguiente.
+\end{itemize}
+
+Con estos valores, lo que conseguimos es configurar una cuadricula con un tamaño concreto, de la que generamos los enlaces. En el caso de la configuración expuesta en el ejemplo, el numero de enlaces que se genera es de 860. A cada uno de los elementos de la lista le aplicaremos el algoritmo de extracción de datos, y obtendremos un documento JSON \footnote{\textbf{JSON:} Javascript Object Notation es una forma de codificar información, similar a un CSV, pero diseñado específicamente para trabajar de manera nativa con Javascript} con el siguiente aspecto:
+
+\begin{lstlisting}[style=ES6, caption={Ejemplo de un documento JSON con la información de un punto concreto \label{code:json_example}}]
+{
+    "lat":"36.35",
+    "lon":"-6.15",
+    "midValues":[
+        2.7,
+        3.8,
+        5.2,
+        6.2,
+        7.3,
+        7.7,
+        7.8,
+        7,
+        5.8,
+        4.4,
+        3.2,
+        2.5
+    ]
+},
+\end{lstlisting}
+
+Cada uno de los documentos generados es mandado al servidor y guardado en la base de datos. Posteriormente, utilizando una función nativa de MongoDB podremos encontrar el punto más cercano a las coordenadas que envía el usuario, y por tanto obtener una aproximación de la radiación el su emplazamiento.

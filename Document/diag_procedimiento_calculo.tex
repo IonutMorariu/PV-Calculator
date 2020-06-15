@@ -18,25 +18,20 @@
       B(0) \\
       G(0)
     \end{array}$};
-  \node[draw](Inclin) at (3,2) {$
+  \node[draw](Inclin) at (5,2) {$
     \begin{array}{c}
       D(\beta,\alpha) \\
       B(\beta,\alpha) \\
       G(\beta,\alpha)\\
     \end{array}$};
-  \node[draw](Eff) at (3,-2){$
+  \node[draw](Eff) at (5,-2){$
     \begin{array}{c}
       D_{ef}(\beta,\alpha) \\ B_{ef}(\beta,\alpha) \\
       G_{ef}(\beta,\alpha)
     \end{array}$};
-  \node[draw](Effd) at (6,-2){$
-    \begin{array}{c}
-      D_{efd}(\beta,\alpha) \\
-      B_{efd}(\beta,\alpha) \\
-      G_{efd}(\beta,\alpha)
-    \end{array}$};
-  \node[draw](Pdc) at (6,2){$P_{DC}$};
+  \node[draw](Pdc) at (10,-2){$P_{DC}$};
   \node[draw](Pac) at (10,2){$P_{AC}$};
+  \node[draw](Eac) at (15,2){$E_{AC}$};
 
   \draw[->] (Gd) -- (Dd) node[midway, right] {$
     \begin{array}{c}
@@ -61,9 +56,9 @@
       FT_D\\
       FT_B
     \end{array}$};
-  \draw[->] (Eff) -- (Effd) node[midway, above] {$\sum$};
-  \draw[->] (Effd) -- (Pdc) node[midway, right] {Generador FV};
-  \draw[->] (Pdc) -- (Pac) node[midway, below] {Inversor DC/AC};
+  \draw[->] (Eff) -- (Pdc);
+  \draw[->] (Pdc) -- (Pac) node[midway, right] {Inversor DC/AC};
+  \draw[->] (Pac) -- (Eac) node[midway,above] {$\sum$};
 \end{tikzpicture}
 
 \end{document}
