@@ -1,4 +1,3 @@
-
 El proceso de cálculo que se va a seguir para la estimación completa de la instalación fotovoltaica conectada a red es el que se detalla en el libro de Oscar Perpiñán, tutor de este trabajo, denominado Energía Solar Fotovoltaica \cite{esf_book}. También se harán menciones a las presentaciones que se encuentran en el mismo enlace que el libro.\\
 
 A lo largo de este capítulo, se utilizará el término \textbf{aplicación} para referirse a todo el conjunto de código relacionado tanto con proceso de obtención de todos los datos necesario como el de mostrar la información relevante al usuario.
@@ -330,7 +329,7 @@ Una vez obtenidos estos valores horarios de irradiancia en el plano horizontal, 
 
 El planteamiento de ésta transformación es el siguiente:
 \begin{itemize}
-\item \textbf{Irradiancia Directa $B(\beta,\alpha)$:} ecuación basada en geometría solar (ángulo cenital) y del generador(ángulo de incidencia).
+\item \textbf{Irradiancia Directa $B(\beta,\alpha)$:} ecuación basada en geometría solar (ángulo cenital) y del generador (ángulo de incidencia).
 \begin{equation}
 \label{eqn:B_beta_alpha}
 B(\beta,\alpha) = B(0) \cdot \frac{max(0,\cos(\theta_s))}{\cos(\theta_{zs})}
@@ -802,7 +801,7 @@ entonces
 
 pudiendo así obtener los valores de $I_{mpp}$ y $V_{vmpp}$.
 
-Sin embargo, hacer esta suposición nos aleja en cierta manera de ofrecer una estimación los más próxima a la realidad posible.
+Sin embargo, hacer esta suposición nos aleja en cierta manera de ofrecer una estimación lo más próxima a la realidad posible.
 
 Por tanto, para intentar aproximarnos los máximo posible a una estimación acertada, eliminaremos dicha suposición y tendremos en cuenta la variación del factor de forma. Para ello, utilizaremos el siguiente proceso:
 \begin{enumerate}
