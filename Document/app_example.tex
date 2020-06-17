@@ -18,7 +18,7 @@ Como se puede observar, el formulario consta de dos partes, por un lado está la
 
 \subsection{Latitud y longitud a partir de la dirección}
 
-La primera parte del formulario consiste en obtener la información acerca del emplazamiento del usuario, es decir, su latitud y longitud. Estos datos son los que se utilizarán en el código, para obtener la información de la radiación en dicho lugar.
+La primera parte del formulario consiste en obtener la información acerca del emplazamiento del usuario, es decir, su latitud y longitud. Estos datos son los que se utilizarán en el código, para obtener la información de la radiación en dicho lugar. El proceso completo para obtener los datos de radiación se describe en \ref{section:adrase_web}
 
 \begin{figure}[ht]
 \includegraphics[scale=0.6]{address_form}
@@ -37,7 +37,7 @@ En este caso práctico la dirección que utilizaremos será la de Guadalajara. P
 
 \subsection{Datos de la superficie destinada a la instalación}
 
-Una vez obtenidas las coordenadas del emplazamiento, es necesario conocer la inclinación, la orientación y el nivel de suciedad de la superficie, para poder realizar el cambio de la radiación en el plano horizontal obtenida anteriormente a la radiación eficaz incidente.
+Una vez obtenidas las coordenadas del emplazamiento, es necesario conocer la inclinación, la orientación y el nivel de suciedad de la superficie, para poder realizar el cambio de la radiación en el plano horizontal obtenida anteriormente a la radiación eficiente incidente.
 
 \begin{figure}[ht]
 \includegraphics[scale=0.5]{house_form}
@@ -67,6 +67,7 @@ Para ello el formulario nos ofrece 4 campos de información:
 \item \textbf{Nivel de suciedad:} Este campo es el mas subjetivo y será a criterio del usuario. Se recomienda realizar cálculos con el peor caso para establecer un margen pero, no obstante, si se conoce con seguridad cuál es el nivel de suciedad de la zona, se ha de usar éste.
 \end{itemize}
 
+Un proceso detallado de como obtener los valores de inclinación y orientación se describe en capítulo 5. TODO
 
 \section {Aplicación de los datos al proceso de cálculo}
 
@@ -84,7 +85,7 @@ A continuación, utilizaremos estos datos para recorrer numéricamente el proces
 
 \subsection{Valores medios mensuales de radiación global}
 
-Tal y como se menciona en la sección \ref{section:get_global_rad}, el primer paso para poder llevar a cabo el proceso de cálculo de la radiación incidente eficaz es obtener la radiación global media para cada uno de los doce meses, en el emplazamiento indicado por el usuario.
+Tal y como se menciona en la sección \ref{section:get_global_rad}, el primer paso para poder llevar a cabo el proceso de cálculo de la radiación incidente efectiva es obtener la radiación global media para cada uno de los doce meses, en el emplazamiento indicado por el usuario.
 
 Para las coordenadas introducidas por el usuario, el punto con información mas cercano que tenemos es de latitud  $40,57 \degree$ y longitud $-3.16 \degree$. 
 
@@ -228,12 +229,13 @@ Al tratarse de 24 valores horarios, para cada uno de los 12 meses, en total tend
 \centering
 \begin{tabular}{|c|r|r|r|r|r|}
 \hline
+ hora
  &
   \multicolumn{1}{c|}{$r_D$} &
   \multicolumn{1}{c|}{$r_G$} &
-  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$B_h$\\ ($kW/m^2$)\end{tabular}} &
-  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D_h$\\ ($kW/m^2$)\end{tabular}} &
-  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$G_h$\\ ($kW/m^2$)\end{tabular}} \\ \hline
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$B(0)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D(0)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$G(0)$\\ ($kW/m^2$)\end{tabular}} \\ \hline
 0 & -0,056 & -0,027 & 0     & 0     & 0     \\ \hline
 1 & -0,053 & -0,026 & 0     & 0     & 0     \\ \hline
 2 & -0,045 & -0,024 & 0     & 0     & 0     \\ \hline
@@ -264,18 +266,19 @@ Al tratarse de 24 valores horarios, para cada uno de los 12 meses, en total tend
 
 \subsubsection{Traslación de los valores al plano inclinado}
 
-Una vez obtenidos los valores horarios en el plano horizontal, podemos trasladar estos al plano inclinado con el proceso descrito de la ecuación \ref{eqn:B_beta_alpha} hasta la ecuación \ref{eqn:ang_incid}. Los resultados se muestran en la tabla \ref{tab:hourly_tilted_values}.
+Una vez obtenidos los valores horarios en el plano horizontal, podemos trasladar estos al plano inclinado con el proceso descrito de la ecuación \ref{eqn:B_beta_alpha} hasta la ecuación \ref{eqn:ang_incid}.
 
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|r|r|r|r|r|}
 \hline
+hora
  &
-  \multicolumn{1}{c|}{$B(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D^C(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D^I(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$G(\beta, \alpha)$} \\ \hline
+   \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$B(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D^C(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D^I(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$G(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}}  \\ \hline
 0  & 0     & 0     & 0     & 0     & 0     \\ \hline
 1  & 0     & 0     & 0     & 0     & 0     \\ \hline
 2  & 0     & 0     & 0     & 0     & 0     \\ \hline
@@ -343,12 +346,12 @@ Habiendo calculado los valores de irradiancia horaria en la superficie inclinada
 \centering
 \begin{tabular}{|c|r|r|r|r|r|}
 \hline
-kW/m^2 &
-  \multicolumn{1}{c|}{$B_{ef}(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D^C_{ef}(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D^I_{ef}(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$D_{ef}(\beta, \alpha)$} &
-  \multicolumn{1}{c|}{$G_{ef}(\beta, \alpha)$} \\ \hline
+  hora &
+   \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$B_{ef}(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D^C_{ef}(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D^I_{ef}(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$D_{ef}(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}} &
+  \multicolumn{1}{c|}{\begin{tabular}[c]{@{}c@{}}$G_{ef}(\beta, \alpha)$\\ ($kW/m^2$)\end{tabular}}  \\ \hline
 0  & 0     & 0     & 0     & 0     & 0        \\ \hline
 1  & 0     & 0     & 0     & 0     & 0        \\ \hline
 2  & 0     & 0     & 0     & 0     & 0        \\ \hline
@@ -374,7 +377,7 @@ kW/m^2 &
 22  & 0     & 0     & 0     & 0     & 0        \\ \hline
 23  & 0     & 0     & 0     & 0     & 0        \\ \hline
 \end{tabular}
-\caption{Irradiancia  directa, difusa y global eficaz incidente en el plano inclinado, para el día promedio del mes de julio \label{tab:hourly_tilted_ef_values}}
+\caption{Irradiancia  directa, difusa y global efectiva incidente en el plano inclinado, para el día promedio del mes de julio \label{tab:hourly_tilted_ef_values}}
 \end{table}
 
 \begin{figure}[H]
@@ -388,21 +391,21 @@ kW/m^2 &
 \includegraphics[scale=0.5]{defc_defi}
 \centering
 \caption{Componentes de la irradiancia difusa efectiva en el plano inclinado}
-\label{fig:hourly_bef}
+\label{fig:hourly_defc_defi}
 \end{figure}
 
 \begin{figure}[H]
 \includegraphics[scale=0.5]{def}
 \centering
 \caption{Irradiancia difusa efectiva en el plano inclinado}
-\label{fig:hourly_bef}
+\label{fig:hourly_def}
 \end{figure}
 
 \begin{figure}[H]
 \includegraphics[scale=0.5]{gef}
 \centering
 \caption{Irradiancia global efectiva en el plano inclinado}
-\label{fig:hourly_bef}
+\label{fig:hourly_gef}
 \end{figure}
 
 Como se puede apreciar, los valores eficaces son ligeramente inferiores al aplicar las pérdidas por el nivel de suciedad medio y el ángulo de incidencia.
@@ -437,14 +440,21 @@ $\degree C$ &
 $T_{min}$ & 0,7 & 2,6 & 5,8 & 8,9 & 11,8 & 17,5 & 22,4 & 18,6 & 14,1 & 10,8 & 6,8 & 4,9 \\ \hline
 $T_{max}$ & 11,4 & 10,6 & 17,1 & 20,3 & 27 & 31,1 & 36,4 & 32,3 & 26,4 & 20,3 & 17,5 & 14,2 \\ \hline
 \end{tabular}
-\caption{Temperaturas máximas y mínimas en para cada uno de los 12 meses \label{tab:temp_min_max}}
+\caption{Temperaturas máximas y mínimas en $\degree$C para cada uno de los 12 meses \label{tab:temp_min_max}}
 \end{table}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{tmax_tmin}
+\centering
+\caption{Temperaturas máximas y mínimas en $\degree$C para cada uno de los 12 meses}
+\label{fig:temp_min_max}
+\end{figure}
 
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
 \hline
-$\degree C$ &
+hora &
   \multicolumn{1}{c|}{Ene} &
   \multicolumn{1}{c|}{Feb} &
   \multicolumn{1}{c|}{Mar} &
@@ -482,18 +492,26 @@ $\degree C$ &
 22 & 1,56  & 3,60  & 7,93  & 11,84 & 16,54 & 22,09 & 26,95 & 22,39 & 16,69 & 12,14 & 7,73  & 5,51  \\ \hline
 23 & 1,16  & 3,25  & 7,36  & 11,23 & 15,73 & 21,37 & 26,21 & 21,66 & 16,06 & 11,70 & 7,32  & 5,19  \\ \hline
 \end{tabular}
-\caption{Perfil de temperaturas en las coordenadas del emplazamiento según el método descrito en \cite{temp_paper} \label{tab:temp_profiles}}
+\caption{Perfil de temperaturas en $\degree$C en las coordenadas del emplazamiento según el método descrito en \cite{temp_paper} \label{tab:temp_profiles}}
 \end{table}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{july_temp}
+\centering
+\caption{Perfil horario de temperaturas para el día promedio del mes de Julio}
+\label{fig:temp_min_max}
+\end{figure}
 
 La temperatura ambiente se necesita para calcular la temperatura de la célula según la ecuación \ref{eqn:T_c}, que a su vez se utiliza para calcular la tensión de circuito abierto, como se puede ver en la ecuación \ref{eqn:V_oc_cs}.
 
 A continuación, en la tabla \ref{tab:mpp_values} se muestran los resultados del proceso de calculo descrito a partir de la página \pageref{section:var_form_factor} para hallar la tensión de circuito abierto $V_{oc}$, la intensidad de cortocircuito $I_{sc}$, asi como la tensión, intensidad y potencia en el punto de máxima potencia, todo ello en las condiciones de temperatura y radiación del emplazamiento indicado por el usuario
+\newpage
 
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|r|r|r|r|r|}
 \hline
- &
+ hora &
   \multicolumn{1}{c|}{$V_{oc} (V)$} &
   \multicolumn{1}{c|}{$I_{sc} (A)$} &
   \multicolumn{1}{c|}{$V_{mpp} (V)$} &
@@ -527,6 +545,41 @@ A continuación, en la tabla \ref{tab:mpp_values} se muestran los resultados del
 \caption{Valores horarios de $V_{oc}$, $I_{sc}$, $I_{mpp}$, $V_{mpp}$ y $P_{mpp}$ para el día promedio del mes de julio } \label{tab:mpp_values}}
 \end{table}
 
+\begin{figure}[H]
+\includegraphics[scale=0.7]{Voc}
+\centering
+\caption{Valores horarios de tensión de circuito abierto para el día promedio del mes de Julio}
+\label{fig:Voc}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{Isc}
+\centering
+\caption{Valores horarios de corriente de cortocircuito para el día promedio del mes de Julio}
+\label{fig:isc}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{Vmpp}
+\centering
+\caption{Valores horarios de tensión en el punto de máxima potencia para el día promedio del mes de Julio}
+\label{fig:vmpp}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{Impp}
+\centering
+\caption{Valores horarios de corriente en el punto de máxima potencia para el día promedio del mes de Julio}
+\label{fig:impp}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{Pmpp}
+\centering
+\caption{Valores horarios de potencia en el punto de máxima potencia para el día promedio del mes de Julio}
+\label{fig:pmpp}
+\end{figure}
+
 Una vez obtenidos los valores en el punto de máximo potencia, el siguiente paso consiste en obtener las potencias en continua y en alterna, es decir, antes y después del inversor. Sobretodo, lo que más interesa es la potencia a la salida del inversor, pues es la que se utilizará para calcular la energía que será capaz de generar un módulo. El proceso de éste cálculo se describe en las ecuaciones \ref{eqn:p_i} a \ref{eqn:P_AC}
 
 El resultado para el mes de julio en el emplazamiento del usuario se muestra en la tabla \ref{tab:P_AC_values}.
@@ -535,27 +588,27 @@ El resultado para el mes de julio en el emplazamiento del usuario se muestra en 
 \centering
 \begin{tabular}{|c|r|}
 \hline
-   & $P_{AC} (W)$ \\ \hline
+hora & $P_{AC} (W)$ \\ \hline
 0  & 0.000        \\ \hline
 1  & 0.000        \\ \hline
 2  & 0.000        \\ \hline
 3  & 0.000        \\ \hline
 4  & 0.000        \\ \hline
 5  & 0.000        \\ \hline
-6  & 6.531        \\ \hline
-7  & 43.754       \\ \hline
-8  & 112.216      \\ \hline
-9  & 176.765      \\ \hline
-10 & 227.312      \\ \hline
-11 & 261.161      \\ \hline
-12 & 277.969      \\ \hline
-13 & 278.100      \\ \hline
-14 & 261.796      \\ \hline
-15 & 229.249      \\ \hline
-16 & 181.469      \\ \hline
-17 & 121.378      \\ \hline
-18 & 55.820       \\ \hline
-19 & 3.576        \\ \hline
+6  & 6,531        \\ \hline
+7  & 43,754       \\ \hline
+8  & 112,216      \\ \hline
+9  & 176,765      \\ \hline
+10 & 227,312      \\ \hline
+11 & 261,161      \\ \hline
+12 & 277,969      \\ \hline
+13 & 278,100      \\ \hline
+14 & 261,796      \\ \hline
+15 & 229,249      \\ \hline
+16 & 181,469      \\ \hline
+17 & 121,378      \\ \hline
+18 & 55,820       \\ \hline
+19 & 3,576        \\ \hline
 20 & 0.000        \\ \hline
 21 & 0.000        \\ \hline
 22 & 0.000        \\ \hline
@@ -563,6 +616,13 @@ El resultado para el mes de julio en el emplazamiento del usuario se muestra en 
 \end{tabular}
 \caption{Valores horarios de la potencia en alterna $P_{AC}$ para el día promedio del mes de julio } \label{tab:P_AC_values}}
 \end{table}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{PAC}
+\centering
+\caption{Valores horarios de potencia en corriente alterna para el día promedio del mes de Julio}
+\label{fig:pac}
+\end{figure}
 
 A continuación, utilizaremos los valores de la potencia a la salida del inversor $P_{AC}$ para calcular la energía que será capaz de producir el módulo en cada mes.
 
@@ -577,6 +637,13 @@ Estas energías se muestran en la tabla \ref{tab:module_monthly_energy}.
 \end{tabular}
 \caption{Energía generada por un módulo en un mes } \label{tab:module_monthly_energy}}
 \end{table}
+
+\begin{figure}[H]
+\includegraphics[scale=0.7]{module_m_energy}
+\centering
+\caption{Energía generada por un módulo en un mes }}
+\label{fig:module_monthly_energy}
+\end{figure}
 
 
 \section{Cálculo final de las potencias y energías}
