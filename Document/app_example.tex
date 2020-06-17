@@ -29,6 +29,8 @@ La primera parte del formulario consiste en obtener la información acerca del e
 
 Para ello, el formulario pide una dirección, que no necesariamente tiene que ser la exacta del emplazamiento, sino que se puede utilizar una dirección genérica cercana al lugar donde se va a realizar la instalación, ya que para una distancia relativamente corta la radiación solar no variará de manera notable.
 
+En la sección \ref{section:get_address} se expone en detalle el proceso para obtener las coordenadas en función de la dirección del usuario.
+
 En este caso práctico la dirección que utilizaremos será la de Guadalajara. Para ésta dirección, las coordenadas que Google nos devuelve son:
 \begin{itemize}
 \item \textbf{Latitud:} $40,632 \degree$.
@@ -88,6 +90,8 @@ A continuación, utilizaremos estos datos para recorrer numéricamente el proces
 Tal y como se menciona en la sección \ref{section:get_global_rad}, el primer paso para poder llevar a cabo el proceso de cálculo de la radiación incidente efectiva es obtener la radiación global media para cada uno de los doce meses, en el emplazamiento indicado por el usuario.
 
 Para las coordenadas introducidas por el usuario, el punto con información mas cercano que tenemos es de latitud  $40,57 \degree$ y longitud $-3.16 \degree$. 
+
+El proceso de obtención de los siguientes valores se describe en detalle en la sección \ref{section:adrase_web}.
 
 Para este punto, los valores de irradiación media son:
 \begin{table}[ht]

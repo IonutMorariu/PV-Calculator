@@ -1,0 +1,1639 @@
+\section{Código del servidor}
+
+\subsection{DataController.JS}
+
+\begin{lstlisting}[style=ES6, caption={Server/Controllers/dataController.js}]
+const path = require('path');
+const mongoose = require('mongoose');
+const SolarData = mongoose.model('SolarData');
+const StationData = mongoose.model('StationData');
+const helpers = require('../helpers/helpers');
+mongoose.Promise = global.Promise;
+const axios = require('axios');
+
+deg2rad = (degs) => {
+	return (degs * Math.PI) / 180;
+};
+rad2deg = (rads) => {
+	return (rads * 180) / Math.PI;
+};
+
+exports.getData = async (req, res, next) => {
+	const latitude = parseFloat(req.query.latitude);
+	const longitude = parseFloat(req.query.longitude);
+	const location = await SolarData.find({
+		location: {
+			$near: {
+				$maxDistance: 10000,
+				$geometry: {
+					type: 'Point',
+					coordinates: [longitude, latitude]
+				}
+			}
+		}
+	});
+	const locationData = location[0];
+	res.json({ data: locationData });
+};
+exports.saveData = async (req, res, next) => {
+	const data = require('./data.json');
+	data.forEach(async (elem) => {
+		const data = await new SolarData({
+			location: {
+				type: 'Point',
+				coordinates: [parseFloat(elem.lon), parseFloat(elem.lat)]
+			},
+			meanValues: elem.midValues
+		}).save();
+	});
+	res.json({ Data: 'Arrived' });
+};
+
+exports.doCalculations = async (req, res, next) => {
+	if (req.query.longitude == undefined || req.query.latitude == undefined) {
+		res.status(400).send('Longitude or latitude is undefined');
+	}
+	const latitude = parseFloat(req.query.latitude);
+	const longitude = parseFloat(req.query.longitude);
+	const angle = parseFloat(req.query.angle);
+	const applyDirtLevel = req.query.applyDirtLevel;
+	const dirtLevel = req.query.dirtLevel;
+	const orientation = parseFloat(req.query.orientation);
+	const location = await SolarData.find({
+		location: {
+			$near: {
+				$maxDistance: 25000,
+				$geometry: {
+					type: 'Point',
+					coordinates: [longitude, latitude]
+				}
+			}
+		}
+	});
+	if (location == []) {
+		res.status(204);
+		res.send('No data found for this location. 
+		Please make sure you have entered a valid pair of coordinates');
+		return;
+	}
+	const locationData = location[0];
+
+	const calcData = {
+		longitude: locationData.location.coordinates[0],
+		latitude: locationData.location.coordinates[1],
+		angle,
+		orientation,
+		applyDirtLevel,
+		dirtLevel,
+		meanValues: [
+			{
+				month: 'Jan',
+				normalDay: 17,
+				meanGR: locationData.meanValues[0]
+			},
+			{
+				month: 'Feb',
+				normalDay: 45,
+				meanGR: locationData.meanValues[1]
+			},
+			{
+				month: 'Mar',
+				normalDay: 74,
+				meanGR: locationData.meanValues[2]
+			},
+			{
+				month: 'Apr',
+				normalDay: 105,
+				meanGR: locationData.meanValues[3]
+			},
+			{
+				month: 'May',
+				normalDay: 135,
+				meanGR: locationData.meanValues[4]
+			},
+			{
+				month: 'Jun',
+				normalDay: 161,
+				meanGR: locationData.meanValues[5]
+			},
+			{
+				month: 'Jul',
+				normalDay: 199,
+				meanGR: locationData.meanValues[6]
+			},
+			{
+				month: 'Aug',
+				normalDay: 230,
+				meanGR: locationData.meanValues[7]
+			},
+			{
+				month: 'Sep',
+				normalDay: 261,
+				meanGR: locationData.meanValues[8]
+			},
+			{
+				month: 'Oct',
+				normalDay: 292,
+				meanGR: locationData.meanValues[9]
+			},
+			{
+				month: 'Nov',
+				normalDay: 322,
+				meanGR: locationData.meanValues[10]
+			},
+			{
+				month: 'Dic',
+				normalDay: 347,
+				meanGR: locationData.meanValues[11]
+			}
+		]
+	};
+
+	const resultData = helpers.calculateValues(calcData);
+
+	res.json({ data: resultData });
+};
+
+exports.saveStations = async (req, res, next) => {
+	const response = await axios(
+		'https://opendata.aemet.es/opendata/api/valores
+		/climatologicos/inventarioestaciones/todasestaciones/?api_key=' 
+		+ process.env.AEMET_API
+	);
+	const data = response.data;
+	const datosResponse = await axios(data.datos);
+	const estaciones = datosResponse.data;
+	const convertedStations = estaciones.map((station) => {
+		const latLetter = station.latitud[station.latitud.length - 1];
+		const lonLetter = station.longitud[station.longitud.length - 1];
+		const latSign = latLetter == 'N' ? 1 : -1;
+		const lonSign = lonLetter == 'W' ? -1 : 1;
+		const lat = latSign * (parseFloat(station.latitud.substr(0,
+		 station.latitud.length - 1)) / 10000);
+		const lon = lonSign * (parseFloat(station.longitud.substr(0,
+		 station.longitud.length - 1))/ 10000);
+		const stationObj = {
+			emaId: station.indicativo,
+			lat,
+			lon
+		};
+		return stationObj;
+	});
+	convertedStations.forEach(async (elem) => {
+		const data = await new StationData({
+			location: {
+				type: 'Point',
+				coordinates: [elem.lon, elem.lat]
+			},
+			emaId: elem.emaId
+		}).save();
+	});
+	res.json({ Data: 'Arrived' });
+};
+
+exports.getTemperatureProfile = async (req, res, next) => {
+	const latitude = parseFloat(req.query.latitude);
+	const longitude = parseFloat(req.query.longitude);
+	let response;
+	const stations = await StationData.find({
+		location: {
+			$near: {
+				$maxDistance: 50000,
+				$geometry: {
+					type: 'Point',
+					coordinates: [longitude, latitude]
+				}
+			}
+		}
+	});
+	const monthlyValues = [];
+	stations.forEach(async (station, index) => {
+		const { emaId } = station;
+		const aemetLink = `https://opendata.aemet.es/
+		opendata/api/valores/climatologicos/mensualesanuales/datos
+		/anioini/2015/aniofin/2015/estacion/${emaId}/?api_key=${
+			process.env.AEMET_API
+		}`;
+		const firstRes = await axios(aemetLink);
+		const firstData = firstRes.data;
+		if (firstData.estado == 404) {
+			return;
+		} else if (firstData.estado == 200) {
+			const secondRes = await axios(firstData.datos);
+			const secondData = secondRes.data;
+			monthlyValues.push(secondData);
+		}
+		if (index == stations.length - 1) {
+			const tempArray = monthlyValues[0].map((month) => {
+				const monthNumber = month.fecha.split('-')[1];
+				const Tmin = parseFloat(month.tm_min) || 5;
+				const Tmax = parseFloat(month.tm_max) || 20;
+				return { Tmin, Tmax, monthNumber };
+			});
+			const normalDays = [17, 45, 74, 105, 135, 161, 199, 230, 261, 292, 322, 347];
+
+			const wp = Math.PI / 4;
+
+			tempArray.pop();
+
+			const tempProfiles = tempArray.map((elem, index) => {
+				const { Tmax, Tmin, monthNumber } = elem;
+				const Tm = (Tmax + Tmin) / 2;
+				const Tr = (Tmax - Tmin) / 2;
+				const Ta = [];
+				const decl = 23.45 * Math.sin((2 * Math.PI * (normalDays[index] + 284)) / 365);
+				const cosWs = -Math.tan(deg2rad(decl)) * Math.tan(deg2rad(latitude));
+				const ws = -Math.acos(cosWs);
+				for (let h = -12; h < 12; h++) {
+					const w = Math.cos(deg2rad(h * 15));
+					const a1 = (Math.PI * 12 * (ws - w)) / (21 * Math.PI + 12 * ws);
+					const a2 = (Math.PI * (3 * Math.PI - 12 * w)) / (3 * Math.PI - 12 * ws);
+					const a3 = (Math.PI * (24 * Math.PI + 12 * (ws - w))) / 
+					(21 * Math.PI + 12 * ws);
+					const T1 = Tm - Tr * Math.cos(a1);
+					const T2 = Tm + Tr * Math.cos(a2);
+					const T3 = Tm - Tr * Math.cos(a3);
+					if (w <= ws) {
+						Ta.push(T1);
+					} else if (w > ws && w <= wp) {
+						Ta.push(T2);
+					} else if (w > wp) {
+						Ta.push(T3);
+					}
+				}
+				return { hourlyTa: Ta, monthNumber, Tmax, Tmin };
+			});
+			response = { latitude, longitude, profiles: tempProfiles };
+			if (response) {
+				res.json(response);
+			} else {
+				res.json({ Data: 'Error with data' });
+			}
+		}
+	});
+};
+
+\end{lstlisting}
+
+\subsection{Helpers.JS}
+
+\begin{lstlisting}[style=ES6, caption={Server/helpers/helpers.js}]
+deg2rad = (degs) => {
+	return (degs * Math.PI) / 180
+}
+rad2deg = (rads) => {
+	return (rads * 180) / Math.PI
+}
+
+const cos = (rads) => {
+	return Math.cos(rads)
+}
+
+const sin = (rads) => {
+	return Math.sin(rads)
+}
+exports.calculateValues = (data) => {
+	const newData = data
+	//1. Declinación, excentricidad y angulo amanecer
+	newData.meanValues.forEach((elem, index) => {
+		const decl = 23.45 * Math.sin((2 * Math.PI * (elem.normalDay + 284)) / 365)
+		const exct = 1 + 0.033 * Math.cos((2 * Math.PI * elem.normalDay) / 365)
+		elem.decl = decl
+		elem.exct = exct
+		const cosWs = -Math.tan(deg2rad(decl)) * Math.tan(deg2rad(newData.latitude))
+		const ws = -Math.acos(cosWs)
+		elem.ws = ws
+	})
+	//2. Calculo Bod
+	newData.meanValues.forEach((elem, index) => {
+		const Bo = 1.367
+		const zenit = []
+		const tilt = []
+		const B00 = []
+		for (let h = -12; h < 12; h++) {
+			const cosZenit =
+				Math.cos(deg2rad(elem.decl)) * Math.cos(deg2rad(h * 15)) *
+				 Math.cos(deg2rad(newData.latitude)) +
+				Math.sin(deg2rad(elem.decl)) * Math.sin(deg2rad(newData.latitude))
+			const zenitVal = rad2deg(Math.acos(cosZenit))
+			zenit.push(zenitVal)
+		}
+		elem.zenit = zenit
+		for (let h = -12; h < 12; h++) {
+			const betaRad = deg2rad(newData.angle)
+			const alphaRad = deg2rad(newData.orientation)
+			const hRad = deg2rad(h * 15)
+			const latRad = deg2rad(newData.latitude)
+			const declRad = deg2rad(elem.decl)
+			const anglIncidenciaVal =
+				Math.sign(newData.latitude) *
+					(Math.sin(betaRad) * Math.cos(alphaRad) * Math.cos(declRad) *
+					 Math.cos(hRad) * Math.sin(latRad) -
+						Math.sin(betaRad) * Math.cos(alphaRad) * Math.cos(latRad) *
+						 Math.sin(declRad)) +
+				Math.sin(betaRad) * Math.sin(alphaRad) * Math.cos(declRad) * Math.sin(hRad) +
+				Math.cos(betaRad) * Math.cos(declRad) * Math.cos(hRad) * Math.cos(latRad) +
+				Math.cos(betaRad) * Math.sin(declRad) * Math.sin(latRad)
+			console.log({
+				data: { angle: newData.angle, orientation: newData.orientation, 
+				lat: newData.latitude, decl: elem.decl },
+				h,
+				anglIncidenciaVal,
+				mes: index,
+			})
+			const anglIncidencia = rad2deg(Math.acos(anglIncidenciaVal))
+			tilt.push(anglIncidencia)
+			elem.tilt = tilt
+		}
+
+		for (let h = 0; h < 24; h++) {
+			const B00val = Bo * elem.exct * Math.cos(deg2rad(elem.zenit[h]))
+			B00.push(B00val)
+		}
+		elem.B00 = B00
+
+		const bod =
+			-(24 / Math.PI) *
+			Bo *
+			elem.exct *
+			(elem.ws * Math.sin(deg2rad(newData.latitude)) *
+			 Math.sin(deg2rad(elem.decl)) +
+				Math.cos(deg2rad(elem.decl)) * Math.cos(deg2rad(newData.latitude)) 
+				* Math.sin(elem.ws))
+		elem.B0d0 = bod
+	})
+	//3. Calculo del indice de claridad y Fd
+	newData.meanValues.forEach((elem, index) => {
+		const Ktd = elem.meanGR / elem.B0d0
+		elem.Ktd = Ktd
+		const Fd = 1 - 1.13 * elem.Ktd
+		elem.Fd = Fd
+	})
+
+	//4. Calculo de Dd y Bd
+	newData.meanValues.forEach((elem, index) => {
+		const Dd0 = elem.Fd * elem.meanGR
+		const Bd0 = elem.meanGR - Dd0
+
+		elem.Dd0 = Dd0
+		elem.Bd0 = Bd0
+	})
+
+	//5. Calculo de la ecuación de perfil (rd & rg)
+	newData.meanValues.forEach((elem, index) => {
+		const rd = []
+		for (let h = -12; h < 12; h++) {
+			const hRad = Math.cos(deg2rad(h * 15))
+			const rdval = (Math.PI / 24) * ((hRad - Math.cos(elem.ws)) 
+			/ (elem.ws * Math.cos(elem.ws) - Math.sin(elem.ws)))
+			rd.push(rdval)
+		}
+		const a = 0.409 - 0.5016 * Math.sin(elem.ws + Math.PI / 3)
+		const b = 0.6609 + 0.4767 * Math.sin(elem.ws + Math.PI / 3)
+
+		const rg = []
+		let i = 0
+		for (let h = -12; h < 12; h++) {
+			const hRad = Math.cos(deg2rad(h * 15))
+			const rgval = rd[i] * (a + b * hRad)
+			rg.push(rgval)
+			i++
+		}
+		elem.rg = rg
+		elem.rd = rd
+	})
+
+	//6. Calculo de los valores horarios de G,D y B
+	newData.meanValues.forEach((elem, index) => {
+		const hourlyValues = []
+		let hour = -12
+		const dawn = rad2deg(elem.ws) / 15
+		elem.dawn = dawn
+		for (let i = 0; i < 24; i++) {
+			const cosHour = Math.cos(deg2rad(hour * 15))
+			const cosWs = Math.cos(elem.ws)
+			if (cosHour > cosWs) {
+				const Dh = elem.rd[i] * elem.Dd0
+				const Gh = elem.rg[i] * elem.meanGR
+				const Bh = Gh - Dh
+				hourlyValues.push({
+					Bh,
+					Dh,
+					Gh,
+					cosHour,
+					cosWs,
+				})
+			} else {
+				hourlyValues.push({
+					Bh: 0,
+					Dh: 0,
+					Gh: 0,
+					cosHour,
+					cosWs,
+				})
+			}
+			hour++
+		}
+		elem.hourlyValues = hourlyValues
+	})
+
+	//8. From horizontal plane to tilted plane
+	newData.meanValues.forEach((elem, index) => {
+		for (let i = 0; i < 24; i++) {
+			const zenitRad = deg2rad(elem.zenit[i])
+			const tiltRad = deg2rad(elem.tilt[i])
+			const betaRad = deg2rad(newData.angle)
+
+			const numerator = Math.max(0, Math.cos(tiltRad))
+			const denominator = Math.cos(zenitRad)
+			const Btilt = elem.hourlyValues[i].Bh * (numerator / denominator)
+			const k1 = elem.hourlyValues[i].Bh / elem.B00[i]
+			const DcTilt = elem.hourlyValues[i].Dh * k1 * (numerator / denominator)
+			const DiTilt = elem.hourlyValues[i].Dh * (1 - k1) * ((1 + Math.cos(betaRad)) / 2)
+			const Dtilt = DcTilt + DiTilt
+			const Gtilt = Btilt + Dtilt
+			elem.hourlyValues[i] = {
+				...elem.hourlyValues[i],
+				Btilt,
+				Dtilt,
+				DcTilt,
+				DiTilt,
+				Gtilt,
+				cosZenit: Math.cos(zenitRad),
+			}
+		}
+	})
+
+	newData.isDirtApplied = newData.applyDirtLevel == 'true'
+
+	if (newData.applyDirtLevel == 'true') {
+		newData.meanValues.forEach((elem, index) => {
+			for (let i = 0; i < 24; i++) {
+				const tiltRad = deg2rad(elem.tilt[i])
+				const betaRad = deg2rad(newData.angle)
+				let TDirtTClean = 0
+				let ar = 0
+				let c1 = 4 / (3 * Math.PI)
+				let c2 = 0
+				switch (newData.dirtLevel) {
+					case 'CLEAN':
+						TDirtTClean = 1
+						ar = 0.17
+						c2 = -0.069
+						break
+					case 'LOW':
+						TDirtTClean = 0.98
+						ar = 0.2
+						c2 = -0.054
+						break
+					case 'MID':
+						TDirtTClean = 0.97
+						ar = 0.21
+						c2 = -0.049
+						break
+					case 'HIGH':
+						TDirtTClean = 0.92
+						ar = 0.27
+						c2 = -0.023
+					default:
+						TDirtTClean = 0
+						ar = 0
+						c2 = 0
+				}
+				newData.TDirtTClean = TDirtTClean
+				newData.ar = ar
+				newData.c1 = c1
+				newData.c2 = c2
+				const FTB = (Math.exp(-Math.cos(tiltRad) / ar) -
+				 Math.exp(-1 / ar)) / (1 - Math.exp(-1 / ar))
+				const expFTD =
+					-(1 / ar) *
+					(c1 * (Math.sin(betaRad) + (Math.PI - betaRad
+					 - Math.sin(betaRad)) / (1 + Math.cos(betaRad))) +
+						c2 * Math.pow(Math.sin(betaRad) + (Math.PI - 
+						betaRad - Math.sin(betaRad)) / (1 + Math.cos(betaRad)), 2))
+				const FTD = Math.exp(expFTD)
+
+				const Btilt = elem.hourlyValues[i].Btilt * TDirtTClean * (1 - FTB)
+				const DiTilt = elem.hourlyValues[i].DiTilt * TDirtTClean * (1 - FTD)
+				const DcTilt = elem.hourlyValues[i].DcTilt * TDirtTClean * (1 - FTB)
+				const Dtilt = DiTilt + DcTilt
+				const Gtilt = Dtilt + Btilt
+
+				//Overwrite data with new values
+				elem.hourlyValues[i].Btilt = Btilt
+				elem.hourlyValues[i].DiTilt = DiTilt
+				elem.hourlyValues[i].DcTilt = DcTilt
+				elem.hourlyValues[i].Dtilt = Dtilt
+				elem.hourlyValues[i].Gtilt = Gtilt
+			}
+		})
+	}
+	//9. Elección de valores clave
+	newData.meanValues.forEach((elem, index) => {
+		const significantValues = []
+		elem.hourlyValues.forEach((value, index) => {
+			if (Math.abs(value.hour) < Math.abs(elem.dawn)) {
+				significantValues.push(value)
+			}
+		})
+		elem.significantValues = significantValues
+	})
+
+	//9.1 Checking results
+	newData.meanValues.forEach((elem, index) => {
+		let totalGr = 0
+		let totalGtilt = 0
+		elem.significantValues.forEach((value, index) => {
+			totalGr += value.Gh
+			totalGtilt += value.Gtilt
+		})
+	})
+
+	return newData
+}
+
+\end{lstlisting}
+
+\subsection{SolarData.js}
+
+\begin{lstlisting}[style=ES6, caption={Server/models/SolarData.js}]
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+mongoose.Promise = global.Promise;
+
+const solarDataSchema = new Schema({
+	location: {
+		type: {
+			type: String,
+			default: 'Point'
+		},
+		coordinates: [
+			{
+				type: Number,
+				required: 'You must supply coordinates!'
+			}
+		]
+	},
+	meanValues: [
+		{
+			type: Number
+		}
+	]
+});
+
+solarDataSchema.index({ location: '2dsphere' });
+
+module.exports = mongoose.model('SolarData', solarDataSchema);
+\end{lstlisting}
+
+\subsection{StationsData.js}
+
+\begin{lstlisting}[style=ES6, caption={Server/models/StationsData.js}]
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+mongoose.Promise = global.Promise;
+
+const stationDataSchema = new Schema({
+	location: {
+		type: {
+			type: String,
+			default: 'Point'
+		},
+		coordinates: [
+			{
+				type: Number,
+				required: 'You must supply coordinates!'
+			}
+		]
+	},
+	emaId: {
+		type: String
+	}
+});
+
+stationDataSchema.index({ location: '2dsphere' });
+
+module.exports = mongoose.model('StationData', stationDataSchema);
+\end{lstlisting}
+
+\subsection{Router.js}
+
+\begin{lstlisting}[style=ES6, caption={Server/routes/index.js}]
+const express = require('express');
+const router = express.Router();
+
+const dataController = require('../controllers/dataController');
+
+// Do work here
+router.get('/', (req, res) => {
+	res.send('Get your solar data from /solar-data');
+});
+
+router.get('/solar-data', dataController.getData);
+
+//router.get('/save-solar-data', dataController.saveData);
+//This route is used to save the solar data to the db from the json file (Only do once)
+
+//router.get('/save-stations', dataController.saveStations);
+// This route is used to save the EMA ID of stations in Spain by coordinates from the AEMET OpenData API
+// (In case API fails & to not abuse their API) (Only do once)
+
+router.get('/do-calculations', dataController.doCalculations);
+
+router.get('/temp-profile', dataController.getTemperatureProfile);
+
+module.exports = router;
+\end{lstlisting}
+
+\subsection{App.js}
+
+\begin{lstlisting}[style=ES6, caption={Server/App.js}]
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const routes = require('./routes/index');
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(function(req, res, next) {
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+	next();
+});
+
+app.use('/', routes);
+
+module.exports = app;
+\end{lstlisting}
+
+\subsection{Start.js}
+
+\begin{lstlisting}[style=ES6, caption={Server/start.js}]
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const mongoose = require('mongoose');
+
+// Certificate
+const privateKey = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/chain.pem', 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
+
+// Make sure we are running node 7.6+
+const [major, minor] = process.versions.node.split('.').map(parseFloat);
+if (major < 7 || (major === 7 && minor <= 5)) {
+	console.log('Wrong version. Update your nodejs version');
+	process.exit();
+}
+
+// import environmental variables from our variables.env file
+require('dotenv').config({ path: 'variables.env' });
+
+// Connect to our Database and handle any bad connections
+mongoose.connect(process.env.DATABASE);
+mongoose.Promise = global.Promise; // Tell Mongoose to use ES6 promises
+mongoose.connection.on('error', (err) => {
+	console.error(`Error → ${err.message}`);
+});
+
+require('./models/SolarData');
+require('./models/StationsData');
+
+
+const app = require('./app');
+
+// Starting both http & https servers
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(credentials, app);
+
+httpServer.listen(80, () => {
+	console.log('HTTP Server running on port 80');
+});
+
+httpsServer.listen(443, () => {
+	console.log('HTTPS Server running on port 443');
+});
+\end{lstlisting}
+
+\section{Código de cliente}
+
+
+\subsection{dataAquisition.js}
+
+\begin{lstlisting}[style=ES6, caption={public/scripts/DataAquisition.js}]
+const googleEndpoint = 'https://maps.googleapis.com/maps/api/geocode/json?';
+const serverEndpoint = 'https://solar-calc.ionut.cc';
+
+const addressInput = document.querySelector('#address');
+const cityInput = document.querySelector('#city');
+const postalInput = document.querySelector('#postal');
+const coordBtn = document.querySelector('#button-get-coords');
+const coordsContainer = document.querySelector('#coords-container');
+const slope = document.querySelector('#slope');
+const area = document.querySelector('#area');
+const orientation = document.querySelector('#orientation');
+const dirtLevel = document.querySelector('#dirt-level');
+const applyDirt = document.querySelector('#apply-dirt');
+const tableBody = document.querySelector('#radiation-data');
+
+let calcData = {};
+const googleApiKey = API_KEYS.GOOGLE_API_KEY;
+
+coordBtn.addEventListener('click', getCalcData);
+
+const moduleData = {
+	Gstar: 1000,
+	VocStar: 46.4,
+	IscStar: 9.05,
+	VmppStar: 37.4,
+	ImppStar: 8.56,
+	Ncs: 12,
+	Ncp: 6,
+	TONC: 45,
+	Tc: 25,
+	Vt: 0.025,
+	m: 1.3,
+	moduleArea: 1.957 * 0.992,
+	nominalPower: 320
+};
+
+const generatordata = {
+	seriesModules: 12,
+	parallelModules: 11
+};
+
+const inverterData = {
+	k0: 0.01,
+	k1: 0.025,
+	k2: 0.05,
+	power: 40000,
+	vMin: 420,
+	vMax: 750
+};
+
+async function getCalcData() {
+	coordBtn.textContent = 'Calculando';
+	coordBtn.disabled = true;
+	coordBtn.classList.add('is-loading');
+
+	calcData.placement = await getCoordinates();
+
+	calcData.surfaceInfo = {
+		area: area.value,
+		slope: slope.value,
+		orientation: orientation.value,
+		dirtLevel: dirtLevel.value,
+		applyDirt: true
+	};
+	const radiationData = await doCalculations(calcData);
+	const cellTempProfile = await calculateCellTemp(calcData, radiationData);
+	console.log(cellTempProfile);
+	const VocProfile = calculateVoc(cellTempProfile);
+	const IscProfile = calculateIsc(radiationData);
+	const { VmppProfile, ImppProfile, RsStar, rs, koc, DM0, DM, impp, vmpp } = applyVariableFF(VocProfile, IscProfile, cellTempProfile);
+	const PmppProfile = calculatePmpp(ImppProfile, VmppProfile);
+	const PdcProfile = calculateGeneratorPower(PmppProfile);
+	const PiProfile = calculatePiProfile(PdcProfile);
+	const PoProfile = calculatePoProfile(PiProfile);
+	const PacProfile = calculatePacProfile(PoProfile);
+	const MonthlyEac = calculateMonthlyEac(PacProfile);
+	const MonthlyEdc = calculateMonthlyEdc(PdcProfile);
+	const monthlyYf = MonthlyEac.map(
+		(val) => val / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules)
+	);
+	const MonthlyEnergykWh = MonthlyEac.map((val) => val / 1000);
+	const AnualEnergyW = calculateAnualEnergy(MonthlyEac);
+	const AnualEnergykWh = AnualEnergyW / 1000;
+	const anualYf = AnualEnergyW / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules);
+
+	// createTable(radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody);
+
+	console.log({
+		radiationData,
+		PdcProfile,
+		PacProfile,
+		MppValues: { VmppProfile, ImppProfile },
+		VocProfile,
+		IscProfile,
+		cellTempProfile,
+		IscProfile,
+		variableFF: { RsStar, rs, koc, DM0, DM, impp, vmpp }
+	});
+
+	saveData(
+		radiationData,
+		MonthlyEnergykWh,
+		AnualEnergykWh,
+		monthlyYf,
+		PacProfile,
+		anualYf,
+		calcData.placement,
+		calcData.surfaceInfo.area,
+		calcData.surfaceInfo.slope,
+		calcData.surfaceInfo.orientation
+	);
+
+	window.location = 'results.html';
+}
+
+const getCoordinates = async () => {
+	const address = addressInput.value.split(' ').join('+');
+	const city = cityInput.value;
+	const postal = postalInput.value;
+	const requestURL = `${googleEndpoint}address=${address},${city},${postal},spain&key=${googleApiKey}`;
+	const response = await fetch(requestURL);
+	const data = await response.json();
+	console.log(data);
+	const info = {
+		formattedAdress: data.results[0].formatted_address,
+		lat: data.results[0].geometry.location.lat,
+		long: data.results[0].geometry.location.lng
+	};
+
+	return info;
+};
+
+const doCalculations = async (calcData) => {
+	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}&angle=${
+		calcData.surfaceInfo.slope
+	}&area=${calcData.surfaceInfo.area}&orientation=${calcData.surfaceInfo.orientation}&applyDirtLevel=${
+		calcData.surfaceInfo.applyDirt
+	}&dirtLevel=${calcData.surfaceInfo.dirtLevel}`;
+
+	const res = await fetch(requestURL);
+	const data = await res.json();
+	return data.data;
+};
+
+const calculateCellTemp = async (calcData, radiationData) => {
+	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}`;
+	const res = await fetch(requestURL);
+	const data = await res.json();
+	const tempProfiles = data.profiles;
+	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, index) => {
+		const meanValue = radiationData.meanValues[index];
+		const TCProfile = hourlyTa.map((temp, index) => {
+			const Gef = meanValue.hourlyValues[index].Gtilt * 1000;
+			const Tc = 25 + (Gef * (moduleData.TONC - 20)) / 800; //Cambiar 1000 por la G en el plano inclinado a esa hora
+			return Tc;
+		});
+		return { TCProfile, month: index + 1, Tmax, Tmin };
+	});
+	return cellTempProfiles;
+};
+
+const calculateVoc = (cellTempProfile) => {
+	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
+		const VocArray = TCProfile.map((temp) => {
+			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
+			return Voc;
+		});
+		return VocArray;
+	});
+	return VocProfile;
+};
+
+const calculateIsc = (radiationData) => {
+	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
+		const IscArray = hourlyValues.map(({ Gtilt }) => {
+			const IscValue = Gtilt * 1000 * (moduleData.IscStar / moduleData.Gstar);
+			return IscValue;
+		});
+		return IscArray;
+	});
+	return IscProfile;
+};
+
+const applyVariableFF = (VocProfile, IscProfile, cellTempProfile) => {
+	const Vtn = (moduleData.Vt * (273 + 25)) / 300;
+	const RsStar =
+		(moduleData.VocStar / moduleData.Ncs -
+			moduleData.VmppStar / moduleData.Ncs +
+			moduleData.m * Vtn * Math.log(1 - moduleData.ImppStar / moduleData.IscStar)) /
+		(moduleData.ImppStar / moduleData.Ncp);
+
+	const rs = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return RsStar * ((moduleData.Ncs / moduleData.Ncp) * (IscProfile[arrIndex][valIndex] / VocValue));
+		});
+	});
+	const koc = VocProfile.map((VocArray, arrIndex) => {
+		return VocArray.map((VocValue, valIndex) => {
+			return VocValue / moduleData.Ncs / (moduleData.m * ((moduleData.Vt * (cellTempProfile[arrIndex].TCProfile[valIndex] + 273)) / 300));
+		});
+	});
+	const DM0 = koc.map((kocArray, arrIndex) => {
+		return kocArray.map((kocValue, valIndex) => {
+			return (kocValue - 1) / (kocValue - Math.log(kocValue));
+		});
+	});
+	const DM = DM0.map((DM0Array, arrIndex) => {
+		return DM0Array.map((DM0Value, valIndex) => {
+			return DM0Value + 2 * rs[arrIndex][valIndex] * Math.pow(DM0Value, 2);
+		});
+	});
+
+	const impp = DM.map((DMArray, arrIndex) => {
+		return DMArray.map((DMValue, valIndex) => {
+			return 1 - DMValue / koc[arrIndex][valIndex];
+		});
+	});
+
+	const vmpp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return 1 - Math.log(koc[arrIndex][valIndex] / DM[arrIndex][valIndex]) / koc[arrIndex][valIndex] - rs[arrIndex][valIndex] * imppValue;
+		});
+	});
+
+	const Vmpp = vmpp.map((vmppArray, arrIndex) => {
+		return vmppArray.map((vmppValue, valIndex) => {
+			return vmppValue * VocProfile[arrIndex][valIndex];
+		});
+	});
+	const Impp = impp.map((imppArray, arrIndex) => {
+		return imppArray.map((imppValue, valIndex) => {
+			return imppValue * IscProfile[arrIndex][valIndex];
+		});
+	});
+
+	return { VmppProfile: Vmpp, ImppProfile: Impp, RsStar, rs, koc, DM0, DM, impp, vmpp };
+};
+
+const calculatePmpp = (ImppProfile, VmppProfile) => {
+	const PmppProfile = ImppProfile.map((ImppArray, dayIndex) => {
+		const PmppArray = ImppArray.map((ImppValue, hourIndex) => {
+			return ImppValue * VmppProfile[dayIndex][hourIndex];
+		});
+		return PmppArray;
+	});
+	return PmppProfile;
+};
+
+const calculateGeneratorPower = (PmppProfile) => {
+	const PdcProfile = PmppProfile.map((PmppArray) => {
+		return PmppArray.map((PmppValue) => {
+			return PmppValue * generatordata.seriesModules * generatordata.parallelModules;
+		});
+	});
+	return PdcProfile;
+};
+
+const calculatePiProfile = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return PdcArray.map((PdcValue) => {
+			return PdcValue / inverterData.power;
+		});
+	});
+};
+
+const calculatePoProfile = (PiProfile) => {
+	return PiProfile.map((PiArray) => {
+		return PiArray.map((PiValue) => {
+			if (PiValue <= 0) {
+				return 0;
+			}
+			const a = inverterData.k2;
+			const b = inverterData.k1 + 1;
+			const c = inverterData.k0 - PiValue;
+			const firstSolution = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			const secondSolution = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+			return firstSolution > 0 ? firstSolution : secondSolution;
+		});
+	});
+};
+
+const calculatePacProfile = (PoProfile) => {
+	return PoProfile.map((PoArray) => {
+		return PoArray.map((PoValue) => {
+			return PoValue * inverterData.power;
+		});
+	});
+};
+
+const calculateMonthlyEac = (PacProfile) => {
+	return PacProfile.map((PacArray) => {
+		return (
+			30 *
+			PacArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+				EacCell.textContent = MonthlyEac[index];
+			}, 0)
+		);
+	});
+};
+
+const calculateMonthlyEdc = (PdcProfile) => {
+	return PdcProfile.map((PdcArray) => {
+		return (
+			30 *
+			PdcArray.reduce((total, currentValue) => {
+				return total + (currentValue > 0 ? currentValue : 0);
+			}, 0)
+		);
+	});
+};
+
+const calculateAnualEnergy = (MonthlyEnergy) => {
+	return MonthlyEnergy.reduce((total, currentValue) => {
+		return total + (currentValue > 0 ? currentValue : 0);
+	}, 0);
+};
+
+const createTable = (radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody) => {
+	tableBody.innerHTML = '';
+	const { meanValues } = radiationData;
+
+	meanValues.forEach((value, index) => {
+		const row = document.createElement('tr');
+		let Gefd = 0;
+		let Defd = 0;
+		let Befd = 0;
+
+		value.hourlyValues.forEach((hValue) => {
+			Gefd += hValue.Gtilt;
+			Defd += hValue.Dtilt;
+			Befd += hValue.Btilt;
+		});
+		const G0dCell = document.createElement('td');
+		G0dCell.textContent = value.meanGR;
+		const Bd0Cell = document.createElement('td');
+		Bd0Cell.textContent = value.Dd0;
+		const Dd0dCell = document.createElement('td');
+		Dd0dCell.textContent = value.Bd0;
+		const GefdCell = document.createElement('td');
+		GefdCell.textContent = Gefd;
+		const DefdCell = document.createElement('td');
+		DefdCell.textContent = Defd;
+		const BefdCell = document.createElement('td');
+		BefdCell.textContent = Befd;
+		const monthCell = document.createElement('td');
+		monthCell.textContent = index + 1;
+		const EacCell = document.createElement('td');
+		EacCell.textContent = MonthlyEac[index] / 1000;
+		const EdcCell = document.createElement('td');
+		EdcCell.textContent = MonthlyEdc[index] / 1000;
+		const YfCell = document.createElement('td');
+		YfCell.textContent = Yf[index];
+		row.appendChild(monthCell);
+		row.appendChild(G0dCell);
+		row.appendChild(Bd0Cell);
+		row.appendChild(Dd0dCell);
+		row.appendChild(GefdCell);
+		row.appendChild(DefdCell);
+		row.appendChild(BefdCell);
+		row.appendChild(EacCell);
+		row.appendChild(EdcCell);
+		row.appendChild(YfCell);
+		tableBody.appendChild(row);
+	});
+};
+
+const saveData = (radiationData, MonthlyEnergykWh, AnualEnergykWh, monthlyYf, PacProfile, AnualYf, location, area, slope, orientation) => {
+	const totalModules = generatordata.seriesModules * generatordata.parallelModules;
+	const totalArea = moduleData.moduleArea * totalModules;
+	const areaRelation = area / totalArea;
+	const installedModules = parseInt(areaRelation * totalModules);
+	const installedPower = installedModules * moduleData.nominalPower;
+	const inverterPower = installedPower * 0.9;
+
+	const results = {
+		placementData: {
+			area,
+			location,
+			slope,
+			orientation
+		},
+		calculationsData: {
+			installedPower,
+			installedModules,
+			inverterPower,
+			AnualEnergykWh,
+			MonthlyEnergykWh,
+			monthlyYf,
+			AnualYf,
+			PacProfile,
+			areaRelation
+		},
+		radiationData
+	};
+	localStorage.setItem('results', JSON.stringify(results));
+};
+
+\end{lstlisting}
+
+\subsection{GenerateLinks.js}
+
+\begin{lstlisting}[style=ES6, caption={public/scripts/generateLinks.js}]
+const minLat = 36.1;
+const maxLat = 43.63;
+const minLon = -9.15;
+const maxLon = 3.06;
+const latDiff = 0.25;
+const lonDiff = 0.25
+const links = [];
+let data = [];
+for (let i = minLat; i <= maxLat; i += latDiff) {
+	for (let j = minLon; j <= maxLon; j += lonDiff) {
+		const lon = j.toFixed(2);
+		const lat = i.toFixed(2);
+		links.push(
+			`http://www.adrase.com/adrasemaps/php/monthly_popup.php?lat=${lat}&lon=${lon}&var_tipe=0`
+		);
+		data.push({
+			lat,
+			lon
+		});
+	}
+}
+
+const textPromises = links.map(async (link) => {
+	const res = await fetch(link, {
+		method: 'GET',
+		mode: 'no-cors'
+	});
+	const text = await res.text();
+	return text;
+});
+Promise.all(textPromises).then(function(values) {
+	let texts = [];
+
+	values.forEach(function(e, i) {
+		if (e.includes('NO HAY DATOS PARA EL PUNTO SELECCIONADO')) {
+			texts.push(null);
+		} else if (e.includes('Valor medio')) {
+			const regex = /[+-]?\d+(\.\d+)?/g;
+			const str = e.split('Valor medio')[1].split('tr')[0];
+			const floats = str.match(regex).map(function(v) {
+				return parseFloat(v);
+			});
+			texts.push(floats);
+		}
+	});
+
+	for (let i = 0; i < texts.length; i++) {
+		data[i].midValues = texts[i];
+	}
+	const filteredData = data.filter((dataElement) => {
+		return dataElement.midValues != null;
+	});
+	stringData = JSON.stringify(filteredData);
+	console.log(stringData);
+});
+
+\end{lstlisting}
+
+\subsection{index.html}
+
+\begin{lstlisting}[style=ES6, caption={public/index.html}]
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Solar calculator</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+</head>
+
+<body>
+
+    <nav class="navbar is-warning" role="navigation" aria-label="main-navigation">
+			<div class="navbar-brand">
+                    <a href="index.html" class="navbar-item title is-5">
+                        <span class="icon is-large"><i class="fas
+                         fa-lg fa-solar-panel"></i></span> Solarcalc</a
+                    >
+                </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <p class="control">
+                    <a href="#" target="_blank" class="has-text-dark title is-5">
+                        <span>About</span>
+                    </a>
+                </p>
+            </div>
+            <div class="navbar-item">
+                <p class="control">
+                    <a href="https://github.com/IonutMorariu/PV-Calculator"
+                     target="_blank" class="button is-dark">
+                        <span class="icon">
+                            <i class="fab fa-github-alt"></i>
+                        </span>
+                        <span>Github</span>
+                    </a>
+                </p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-half">
+                <h3 class="title is-4 has-text-centered">Datos del emplazamiento</h3>
+                <div class="field">
+                    <label class="label" for="address">Direccion</label>
+                    <div class="control has-icons-left has-icons-right">
+                        <input class="input" type="text" placeholder="Calle"
+                         id="address" required value="">
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-map-marker"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="field is-horizontal">
+                    <div class="field-body">
+                        <div class="field">
+                            <label class="label" for="city">Municipio</label>
+                            <div class="control has-icons-left has-icons-right">
+                                <input class="input" type="text"
+                                 placeholder="Municipio" id="city" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="postal">Código postal</label>
+                            <div class="control has-icons-left has-icons-right">
+                                <input class="input" type="text"
+                                 placeholder="Código postal" id="postal" required">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-hashtag"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="title is-4">Datos de la casa</h3>
+                <div class="field is-horizontal">
+                    <div class="field-body">
+                        <div class="field">
+                            <label class="label" for="slope">Inclinación 
+                            del tejado en grados </label>
+                            <div class="control has-icons-left has-icons-right">
+                                <input class="input" type="text" 
+                                placeholder="Inclinación aproximada del tejado"
+                                 id="slope" required value="20">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="area">Área del tejado 
+                            en metros cuadrados</label>
+                            <div class="control has-icons-left has-icons-right">
+                                <input class="input" type="text" 
+                                placeholder="Área del tejado" id="area"
+                                 required value="23">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-calculator"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field is-horizontal">
+                    <div class="field-body">
+                        <div class="field">
+                            <label for="" class="label">Orientación</label>
+                            <p class="control has-icons-left">
+                                    <input class="input" type="number"
+                                     placeholder="Orientacion" id="orientation"
+                                      required value="0">
+
+                                <!-- <span class="select">
+                                    <select id="orientation">
+                                        <option disabled>Orientación</option>
+                                        <option value="180">Norte (N)</option>
+                                        <option value="225">Noreste(NE)</option>
+                                        <option value="270">Este (E)</option>
+                                        <option value="315">Sureste (SE)</option>
+                                        <option selected value="0">Sur (S)</option>
+                                        <option value="45">Suroste (SW)</option>
+                                        <option value="90">Oeste (W)</option>
+                                        <option value="135">Noroeste (NW)</option>
+                                    </select>
+                                </span> -->
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-compass"></i>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="field">
+                            <label for="" class="label">Nivel de suciedad</label>
+                            <p class="control has-icons-left">
+                                <span class="select">
+                                    <select id="dirt-level">
+                                        <option disabled>Suciedad</option>
+                                        <option value="CLEAN">Limpio</option>
+                                        <option selected value="LOW">Nivel bajo</option>
+                                        <option value="MID">Nivel medio</option>
+                                        <option value="HIGH">Nivel alto</option>
+                                    </select>
+                                </span>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-broom"></i>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- <div class="field">
+                    <label class="checkbox">
+                        <input id="apply-dirt" type="checkbox" checked aria-checked="true">
+                        Aplicar suciedad y angulo de incidencia (solo para pruebas)
+                      </label>
+                </div> -->
+                <div class="control has-text-centered">
+                    <a class="button is-warning is-centered" id="button-get-coords">
+                        <span class="icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </span>
+                        <span>Enviar</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+<!--         
+        <div>
+            <table class="test-data" border="1">
+                <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>G0d</th>
+                      <th>Bd0</th>
+                      <th>Dd0</th>
+                      <th>Gefd</th>
+                      <th>Defd</th>
+                      <th>Befd</th>
+                      <th>Eac</th>
+                      <th>Edc</th>
+                      <th>Yf</th>
+                    </tr>
+                  </thead>
+                  <tbody id="radiation-data"></tbody>
+            </table>
+        </div> -->
+</body>
+<script src="./scripts/apiKeys.js"></script>
+<script src="./scripts/dataAquisition.js"></script>
+
+
+</html>
+
+\end{lstlisting}
+
+\subsection{Results.html}
+
+\begin{lstlisting}[style=ES6, caption={public/results.html}]
+	<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Resultados</title>
+		<link rel="stylesheet" href="./styles/style.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" />
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" />
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+		<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+	</head>
+
+	<body>
+		<nav class="navbar is-warning" role="navigation" aria-label="main-navigation">
+			<div class="navbar-brand">
+				<a href="index.html" class="navbar-item title is-5">
+					<span class="icon is-large"><i class="fas fa-lg 
+					fa-solar-panel"></i></span> Solarcalc</a
+				>
+			</div>
+			<div class="navbar-end">
+				<div class="navbar-item"></div>
+				<div class="navbar-item">
+					<p class="control">
+						<a href="https://github.com/IonutMorariu/PV-Calculator" 
+						target="_blank" class="button is-dark"
+							<span class="icon">
+								<i class="fab fa-github-alt"></i>
+							</span>
+							<span>Github</span>
+						</a>
+					</p>
+				</div>
+			</div>
+		</nav>
+		<div class="section">
+			<div class="columns is-centered">
+				<div class="column is-half">
+					<div class="box">
+						<h1 class="title is-4 has-text-centered">Resultados del cálculo</h1>
+						<h2 class="title is-5">Datos del emplazamiento:</h2>
+						<ul class="list">
+							<div class="data-grid">
+								<li><span class="has-text-weight-semibold">
+								Latitud:</span> <span id="latitude"></span></li>
+								<li><span class="has-text-weight-semibold">
+								Longitud:</span> <span id="longitude"></span></li>
+								<li><span class="has-text-weight-semibold">
+								Radiación global media:</span>
+								 <span id="global-radiation"></span></li>
+								<li><span class="has-text-weight-semibold">
+								Superficie:</span> <span id="area"></span></li>
+								<li><span class="has-text-weight-semibold">
+								Inclinación:</span> 
+								<span id="slope"></span></li>
+								<li><span class="has-text-weight-semibold">
+								Orientación:</span>
+								<span id="orientation"></span></li>
+							</div>
+						</ul>
+						<hr style="margin: 0 0 3rem;" />
+						<h2 class="title is-5">Datos de la instalacion calculada:</h2>
+						<ul class="list">
+							<div class="columns">
+								<div class="column is-one-half">
+									<li><span class="has-text-weight-semibold">
+									Numero de modulos:</span> 
+									<span id="installed-modules"></span></li>
+									<li><span class="has-text-weight-semibold">
+									Potencia minima del inversor:</span>
+									 <span id="inverter-power"></span></li>
+								</div>
+								<div class="column is-one-half">
+									<li><span class="has-text-weight-semibold">
+									Potencia instalada:</span>
+									 <span id="installed-power"></span></li>
+									<li><span class="has-text-weight-semibold">
+									Energía anual producida:</span> 
+									<span id="anual-energy"></span></li>
+								</div>
+							</div>
+						</ul>
+						<hr style="margin: 0 0 1rem;" />
+
+						<p class="content is-small">
+							Los calculos han sido realizados en
+							 base al módulo de potencia nominal
+							  320W del fabricante JINKO SOLAR, modelo JKM320PP
+							<a target="_blank" href="https://autosolar.es/pdf
+							/Ficha-Tecnica-Jinko-Solar-305-320W.pdf">ENLACE</a>
+							<br />
+							<!-- Esta aplicación es el
+							 resultado del Trabajo de Fin de Grado de Ionut Morariu.
+							  Puede leer todo el proceso del cálculo que se ha
+							seguido para conseguir los resultados en este documento.
+							<a target="_blank" href="https://github.com/
+							IonutMorariu/pv-calculator">ENLACE</a> -->
+						</p>
+					</div>
+					<h2 class="title is-5 has-text-centered">
+					Gráficos adicionales:</h2>
+
+					<canvas id="chart-1" width="400" height="200"></canvas>
+					<canvas id="chart-2" width="400" height="200"></canvas>
+					<canvas id="chart-3" width="400" height="200"></canvas>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="bling.js"></script>
+	<script src="renderResults.js"></script>
+</html>
+
+\end{lstlisting}
+
+\subsection{renderResults.js}
+
+\begin{lstlisting}[style=ES6, caption={public/renderResults.js}}]
+const results = JSON.parse(localStorage['results'])
+console.log(results)
+//Placement data
+$('#area').innerHTML = results.placementData.area + ' m<sup>2</sup>'
+$('#latitude').textContent = results.placementData.location.lat.toFixed(2)
+$('#longitude').textContent = results.placementData.location.long.toFixed(2)
+$('#orientation').textContent = results.placementData.orientation + ' º'
+$('#slope').textContent = results.placementData.slope + ' º'
+$('#global-radiation').innerHTML =
+	(
+		results.radiationData.meanValues.reduce((prev, next) => {
+			return (prev += next.meanGR)
+		}, 0) / 12
+	).toFixed(2) + ' kWh/m<sup>2</sup>'
+
+//Calculation data
+
+$('#installed-modules').textContent = results.calculationsData.installedModules
+$('#installed-power').textContent = results.calculationsData.installedPower + ' W'
+$('#inverter-power').textContent = results.calculationsData.inverterPower + ' W'
+$('#anual-energy').textContent =
+	((results.calculationsData.AnualEnergykWh / 1000) *
+	 results.calculationsData.areaRelation).toFixed(2) + ' MWh'
+
+const ctx1 = document.getElementById('chart-1').getContext('2d')
+const ctx2 = document.getElementById('chart-2').getContext('2d')
+const ctx3 = document.getElementById('chart-3').getContext('2d')
+
+const myChart1 = new Chart(ctx1, {
+	type: 'line',
+	data: {
+		labels: ['Enero', 'Febrero', 'Marzo', 'Abril',
+		 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre',
+		  'Octubre', 'Noviembre', 'Diciembre'],
+		datasets: [
+			{
+				label: 'Energia mensual en kWh',
+				data: results.calculationsData.MonthlyEnergykWh.map(val =>
+				 (val * results.calculationsData.areaRelation).toFixed(2)),
+				backgroundColor: ['#ff76751f'],
+				borderColor: ['#ff7675'],
+				lineTension: 0,
+			},
+		],
+	},
+	options: {
+		responsive: true,
+		scales: {
+			yAxes: [
+				{
+					ticks: {
+						beginAtZero: true,
+					},
+				},
+			],
+		},
+	},
+})
+const myChart2 = new Chart(ctx2, {
+	type: 'line',
+	data: {
+		labels: ['Enero', 'Febrero', 'Marzo', 
+		'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 
+		'Octubre', 'Noviembre', 'Diciembre'],
+		datasets: [
+			{
+				label: 'Productividad diaria media',
+				data: results.calculationsData.monthlyYf.map(val =>
+				 (val / 30).toFixed(2)),
+				backgroundColor: ['#0984e31f'],
+				borderColor: ['#0984e3'],
+				lineTension: 0,
+			},
+		],
+	},
+	options: {
+		responsive: true,
+		scales: {
+			yAxes: [
+				{
+					ticks: {
+						beginAtZero: true,
+					},
+				},
+			],
+		},
+	},
+})
+console.log(results.calculationsData.PacProfile.map(profile => Math.max(...profile)))
+const myChart3 = new Chart(ctx3, {
+	type: 'line',
+	data: {
+		labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 
+		'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre',
+		 'Noviembre', 'Diciembre'],
+		datasets: [
+			{
+				label: 'Potencia Máxima diaria en W',
+				data: results.calculationsData.PacProfile.map(profile => 
+				(Math.max(...profile) * results.calculationsData.areaRelation)
+				.toFixed(2)),
+				backgroundColor: ['#00b8941f'],
+				borderColor: ['#00b894'],
+				lineTension: 0,
+			},
+		],
+	},
+	options: {
+		responsive: true,
+		scales: {
+			yAxes: [
+				{
+					ticks: {
+						beginAtZero: true,
+					},
+				},
+			],
+		},
+	},
+})
+\end{lstlisting}
+
+
