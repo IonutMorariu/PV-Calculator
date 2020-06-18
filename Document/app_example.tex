@@ -69,7 +69,62 @@ Para ello el formulario nos ofrece 4 campos de información:
 \item \textbf{Nivel de suciedad:} Este campo es el mas subjetivo y será a criterio del usuario. Se recomienda realizar cálculos con el peor caso para establecer un margen pero, no obstante, si se conoce con seguridad cuál es el nivel de suciedad de la zona, se ha de usar éste.
 \end{itemize}
 
-Un proceso detallado de como obtener los valores de inclinación y orientación se describe en capítulo 5. TODO
+Un proceso detallado de como obtener los valores de inclinación y orientación se describe a continuación
+
+\subsection{Obtención de la inclinación y orientación de la superficie}
+
+\subsubsection{Medición de la inclinación}
+
+En la aplicación se presentan dos campos dentro del formulario que debe rellenar el usuario, que requieren introducir la inclinación y la orientación de la superficie donde se va a instalar el generador fotovoltaico.
+
+Para ello, existen multitud de aplicaciones gratuitas en la tienda de aplicaciones tanto de Android como de iOS. En este caso, se va a mostrar un ejemplo con un dispositivo Android, pero esto se puede trasladar igualmente a un dispositivo iOS.
+
+La aplicación que se va a utilizar se llama \textit{Angle Meter}, y la empresa que lo desarrolla se llama \textit{Smart Tool Factory}. Se encuentra en la Play Store de Android de manera gratuita.
+
+Cuando se abre la aplicación por primera vez, encontramos lo siguiente:
+
+\begin{figure}[H]
+\includegraphics[scale=0.2]{app_homescreen}
+\centering
+\caption{Pantalla de inicio de la aplicación}
+\end{figure}
+
+A continuación, pulsamos el botón que sale remarcado con un círculo verde, lo que hará que cambie el modo de medición de ángulos a inclinación, que es el necesario para obtener el dato de la inclinación. Cuando la aplicación cambie a ese modo, se verá de la siguiente manera:
+
+\begin{figure}[H]
+\includegraphics[scale=0.2]{app_angle}
+\centering
+\caption{Medición de ángulo}
+\end{figure}
+
+A continuación, el dispositivo se debe colocar según la figura que se muestra abajo, teniendo en cuenta que la imagen se muestra con una perspectiva perpendicular a la superficie.
+\begin{figure}[H]
+\includegraphics[scale=0.4]{phone_placement}
+\centering
+\caption{Posición del dispositivo}
+\end{figure}
+
+De esta manera, obtenemos la inclinación de la superficie en grados.
+
+\subsubsection{Medición de la orientación}
+
+Para obtener la orientación de la superficie, debemos cambiar una vez más el modo de funcionamiento de la aplicación, dejando el dispositivo en la mismo posición que en la medición de inclinación.
+
+Para ello, abrimos el menú desde la izquierda y pulsamos en la opción llamada \textit{Compass}, como se muestra en la siguiente figura.
+
+\begin{figure}[H]
+\includegraphics[scale=0.2]{app_menu_compass}
+\centering
+\caption{Opción brújula del menú}
+\end{figure}
+
+Una vez abierta la brújula, observamos la medición que nos muestra en la parte inferior central de la pantalla. A esa medición debemos restarle 180 $\degree$ para obtener el valor que necesita la aplicación de cálculo. Es decir, si observamos una orientación de 193 $\degree$, en el formulario introduciremos 13 $\degree$. En la figura de abajo se muestra como se ve la pantalla de la brújula.
+
+\begin{figure}[H]
+\includegraphics[scale=0.2]{app_compass}
+\centering
+\caption{Opción brújula del menú}
+\end{figure}
 
 \section {Aplicación de los datos al proceso de cálculo}
 
@@ -79,7 +134,7 @@ En la sección anterior hemos recogido los datos que un usuario ha introducido a
 \item \textbf{Longitud:} $-3.166 \degree$.
 \item \textbf{Inclinación de la superficie:} $20 \degree$.
 \item \textbf{Área de la superficie:} $40 m^2 $.
-\item \textbf{Orientación de la superficie:} $30 \degree$.
+\item \textbf{Orientación de la superficie:} $30 \degree$ SUR.
 \item \textbf{Nivel de suciedad:} Medio.
 \end{itemize}
 
@@ -217,6 +272,10 @@ La primera gráfica muestra los valores absolutos de las dos componentes, que la
 
 \subsection{Irradiancia en la superficie inclinada}
 
+El término irradiancia ($W/m^2$) se refiere a la magnitud utilizada para describir la potencia incidente por unidad de superficie de cualquier tipo de radiación, en este caso la solar. En cambio, el término irradiación ($Wh/m^2$) es una energía por unidad de área. 
+
+Sin embargo, como la evolución de la radiación solar a lo largo de una hora es relativamente lenta, podemos asumir que la irradiación solar durante esa hora coincide con el valor media de la irradiancia de dicha hora y utilizar los dos términos de manera equivalente.
+
 \subsubsection{Irradiancia en el plano horizontal}
 Conociendo ya los valores diarios de la radiación directa y difusa en el plano horizontal, el próximo paso es obtener los valores horarios de irradiancia, tanto directa como difusa, en el plano horizontal para poder llevar a cabo posteriormente, la traslación de estos valores al plano inclinado.El proceso se describe detalladamente en las secciones \ref{section:3.5.1} y \ref{section:3.5.2}.
 
@@ -225,7 +284,7 @@ Al tratarse de 24 valores horarios, para cada uno de los 12 meses, en total tend
 \begin{figure}[H]
 \includegraphics[scale=0.7]{july_hourly_horizontal}
 \centering
-\caption{Irradiación horaria para el día promedio del mes de julio}
+\caption{Irradiancia para el día promedio del mes de julio}
 \label{fig:hourly_horizontal_values}
 \end{figure}
 
@@ -513,38 +572,39 @@ A continuación, en la tabla \ref{tab:mpp_values} se muestran los resultados del
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|c|r|r|r|r|r|}
+\begin{tabular}{|c|r|r|r|r|r|r|}
 \hline
  hora &
   \multicolumn{1}{c|}{$V_{oc} (V)$} &
   \multicolumn{1}{c|}{$I_{sc} (A)$} &
   \multicolumn{1}{c|}{$V_{mpp} (V)$} &
   \multicolumn{1}{c|}{$I_{mpp} (A)$} &
-  \multicolumn{1}{c|}{$P_{mpp}(W)$} \\ \hline
-0  & 46,601 & 0 & 44,793 & 0 & 0   \\ \hline
-1  & 46,595 & 0 & 44,786 & 0 & 0   \\ \hline
-2  & 46,578 & 0 & 44,767 & 0 & 0   \\ \hline
-3  & 46,550 & 0 & 44,734 & 0 & 0   \\ \hline
-4  & 46,512 & 0 & 44,689 & 0 & 0   \\ \hline
-5  & 46,463 & 0,052 & 44,586 & 0,051 & 2,287   \\ \hline
-6  & 46,405 & 0,222 & 44,365 & 0,220 & 9,782   \\ \hline
-7  & 46,286 & 1,126 & 43,417 & 1,116 & 48,451  \\ \hline
-8  & 46,093 & 2,935 & 41,575 & 2,906 & 120,800 \\ \hline
-9 & 45,902 & 4,860 & 39,635 & 4,806 & 190,477 \\ \hline
-10 & 45,739 & 6,567 & 37,925 & 6,487 & 246,037 \\ \hline
-11 & 45,619 & 7,842 & 36,652 & 7,742 & 283,740 \\ \hline
-12 & 45,554 & 8,525 & 35,970 & 8,413 & 302,612 \\ \hline
-13 & 45,553 & 8,531 & 35,963 & 8,419 & 302,759 \\ \hline
-14 & 45,615 & 7,868 & 36,624 & 7,767 & 284,452 \\ \hline
-15 & 45,732 & 6,636 & 37,856 & 6,556 & 248,184 \\ \hline
-16 & 45,895 & 5,009 & 39,495 & 4,953 & 195,606 \\ \hline
-17 & 46,089 & 3,192 & 41,341 & 3,159 & 130,596 \\ \hline
-18 & 46,290 & 1,429 & 43,151 & 1,416 & 61,081  \\ \hline
-19 & 46,454 & 0,153 & 44,484 & 0,151 & 6,732   \\ \hline
-20 & 46,512 & 0 & 44,689 & 0 & 0   \\ \hline
-21 & 46,550 & 0 & 44,734 & 0 & 0   \\ \hline
-22 & 46,578 & 0 & 44,767 & 0 & 0   \\ \hline
-23 & 46,595 & 0 & 44,786 & 0 & 0   \\ \hline
+  \multicolumn{1}{c|}{$P_{mpp}(W)$} &
+  \multicolumn{1}{c|}{$P_{ac}(W)$}\\ \hline
+0  & 46,601 & 0 & 44,793 & 0 & 0 & 0			  \\ \hline
+1  & 46,595 & 0 & 44,786 & 0 & 0 & 0  			  \\ \hline
+2  & 46,578 & 0 & 44,767 & 0 & 0 & 0             \\ \hline
+3  & 46,550 & 0 & 44,734 & 0 & 0 & 0             \\ \hline
+4  & 46,512 & 0 & 44,689 & 0 & 0 & 0             \\ \hline
+5  & 46,463 & 0,052 & 44,586 & 0,051 & 2,287 & 0  \\ \hline
+6  & 46,405 & 0,222 & 44,365 & 0,220 & 9,782 & 6,531  \\ \hline
+7  & 46,286 & 1,126 & 43,417 & 1,116 & 48,451 & 43,754  \\ \hline
+8  & 46,093 & 2,935 & 41,575 & 2,906 & 120,800 & 112,216 \\ \hline
+9 & 45,902 & 4,860 & 39,635 & 4,806 & 190,477 & 176,765\\ \hline
+10 & 45,739 & 6,567 & 37,925 & 6,487 & 246,037 & 227,312 \\ \hline
+11 & 45,619 & 7,842 & 36,652 & 7,742 & 283,740 & 261,161 \\ \hline
+12 & 45,554 & 8,525 & 35,970 & 8,413 & 302,612 & 277,969\\ \hline
+13 & 45,553 & 8,531 & 35,963 & 8,419 & 302,759 & 278,100\\ \hline
+14 & 45,615 & 7,868 & 36,624 & 7,767 & 284,452 & 261,796 \\ \hline
+15 & 45,732 & 6,636 & 37,856 & 6,556 & 248,184 & 229,249\\ \hline
+16 & 45,895 & 5,009 & 39,495 & 4,953 & 195,606 & 181,469 \\ \hline
+17 & 46,089 & 3,192 & 41,341 & 3,159 & 130,596 & 121,378 \\ \hline
+18 & 46,290 & 1,429 & 43,151 & 1,416 & 61,081 & 55,820  \\ \hline
+19 & 46,454 & 0,153 & 44,484 & 0,151 & 6,732 & 3,576  \\ \hline
+20 & 46,512 & 0 & 44,689 & 0 & 0 & 0   \\ \hline
+21 & 46,550 & 0 & 44,734 & 0 & 0 & 0   \\ \hline
+22 & 46,578 & 0 & 44,767 & 0 & 0 & 0   \\ \hline
+23 & 46,595 & 0 & 44,786 & 0 & 0 & 0   \\ \hline
 \end{tabular}
 \caption{Valores horarios de $V_{oc}$, $I_{sc}$, $I_{mpp}$, $V_{mpp}$ y $P_{mpp}$ para el día promedio del mes de julio } \label{tab:mpp_values}}
 \end{table}
@@ -578,77 +638,11 @@ A continuación, en la tabla \ref{tab:mpp_values} se muestran los resultados del
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[scale=0.7]{Pmpp}
+\includegraphics[scale=0.7]{Pmpp_pac}
 \centering
-\caption{Valores horarios de potencia en el punto de máxima potencia para el día promedio del mes de Julio}
+\caption{Valores horarios de potencia en el punto de máxima potencia y a la salida del inversor para el día promedio del mes de Julio}
 \label{fig:pmpp}
 \end{figure}
-
-Una vez obtenidos los valores en el punto de máximo potencia, el siguiente paso consiste en obtener las potencias en continua y en alterna, es decir, antes y después del inversor. Sobretodo, lo que más interesa es la potencia a la salida del inversor, pues es la que se utilizará para calcular la energía que será capaz de generar un módulo. El proceso de éste cálculo se describe en las ecuaciones \ref{eqn:p_i} a \ref{eqn:P_AC}
-
-El resultado para el mes de julio en el emplazamiento del usuario se muestra en la tabla \ref{tab:P_AC_values}.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|r|}
-\hline
-hora & $P_{AC} (W)$ \\ \hline
-0  & 0.000        \\ \hline
-1  & 0.000        \\ \hline
-2  & 0.000        \\ \hline
-3  & 0.000        \\ \hline
-4  & 0.000        \\ \hline
-5  & 0.000        \\ \hline
-6  & 6,531        \\ \hline
-7  & 43,754       \\ \hline
-8  & 112,216      \\ \hline
-9  & 176,765      \\ \hline
-10 & 227,312      \\ \hline
-11 & 261,161      \\ \hline
-12 & 277,969      \\ \hline
-13 & 278,100      \\ \hline
-14 & 261,796      \\ \hline
-15 & 229,249      \\ \hline
-16 & 181,469      \\ \hline
-17 & 121,378      \\ \hline
-18 & 55,820       \\ \hline
-19 & 3,576        \\ \hline
-20 & 0.000        \\ \hline
-21 & 0.000        \\ \hline
-22 & 0.000        \\ \hline
-23 & 0.000        \\ \hline
-\end{tabular}
-\caption{Valores horarios de la potencia en alterna $P_{AC}$ para el día promedio del mes de julio } \label{tab:P_AC_values}}
-\end{table}
-
-\begin{figure}[H]
-\includegraphics[scale=0.7]{PAC}
-\centering
-\caption{Valores horarios de potencia en corriente alterna para el día promedio del mes de Julio}
-\label{fig:pac}
-\end{figure}
-
-A continuación, utilizaremos los valores de la potencia a la salida del inversor $P_{AC}$ para calcular la energía que será capaz de producir el módulo en cada mes.
-
-Estas energías se muestran en la tabla \ref{tab:module_monthly_energy}.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
-\hline
-                                      & Ene   & Feb   & Mar   & Abr   & May   & Jun   & Jul   & Ago   & Sep   & Oct   & Nov   & Dic   \\ \hline
-\multicolumn{1}{|r|}{$E_{mes} (kWh)$} & 26,19 & 37,88 & 51,54 & 55,33 & 61,02 & 68,16 & 67,11 & 62,78 & 52,67 & 41,33 & 28,47 & 22,85 \\ \hline
-\end{tabular}
-\caption{Energía generada por un módulo en un mes } \label{tab:module_monthly_energy}}
-\end{table}
-
-\begin{figure}[H]
-\includegraphics[scale=0.7]{module_m_energy}
-\centering
-\caption{Energía generada por un módulo en un mes }}
-\label{fig:module_monthly_energy}
-\end{figure}
-
 
 \section{Cálculo final de las potencias y energías}
 

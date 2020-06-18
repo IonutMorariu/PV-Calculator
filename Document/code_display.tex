@@ -1,3 +1,5 @@
+Todo el código que se muestra a continuación está disponible para descargar, consultar y modificar libremente en el repositorio de Github correspondiente a este trabajo a través del enlace: \url{https://github.com/IonutMorariu/PV-Calculator}
+
 \section{Código del servidor}
 
 \subsection{DataController.JS}
@@ -633,10 +635,12 @@ router.get('/', (req, res) => {
 router.get('/solar-data', dataController.getData);
 
 //router.get('/save-solar-data', dataController.saveData);
-//This route is used to save the solar data to the db from the json file (Only do once)
+//This route is used to save the solar data to the db
+ from the json file (Only do once)
 
 //router.get('/save-stations', dataController.saveStations);
-// This route is used to save the EMA ID of stations in Spain by coordinates from the AEMET OpenData API
+// This route is used to save the EMA ID of stations 
+in Spain by coordinates from the AEMET OpenData API
 // (In case API fails & to not abuse their API) (Only do once)
 
 router.get('/do-calculations', dataController.doCalculations);
@@ -659,7 +663,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Origin', '*');
-	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+	res.header('Access-Control-Allow-Headers', 'Origin,
+	 X-Requested-With, Content-Type, Accept');
 	next();
 });
 
@@ -677,9 +682,12 @@ const https = require('https');
 const mongoose = require('mongoose');
 
 // Certificate
-const privateKey = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/privkey.pem', 'utf8');
-const certificate = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/cert.pem', 'utf8');
-const ca = fs.readFileSync('/etc/letsencrypt/live/solar-calc.ionut.cc/chain.pem', 'utf8');
+const privateKey = fs.readFileSync('/etc/letsencrypt/live
+/solar-calc.ionut.cc/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('/etc/letsencrypt/live/
+solar-calc.ionut.cc/cert.pem', 'utf8');
+const ca = fs.readFileSync('/etc/letsencrypt/live/
+solar-calc.ionut.cc/chain.pem', 'utf8');
 
 const credentials = {
 	key: privateKey,
@@ -798,7 +806,8 @@ async function getCalcData() {
 	console.log(cellTempProfile);
 	const VocProfile = calculateVoc(cellTempProfile);
 	const IscProfile = calculateIsc(radiationData);
-	const { VmppProfile, ImppProfile, RsStar, rs, koc, DM0, DM, impp, vmpp } = applyVariableFF(VocProfile, IscProfile, cellTempProfile);
+	const { VmppProfile, ImppProfile, RsStar, rs, koc, DM0, DM, impp, vmpp } = 
+	applyVariableFF(VocProfile, IscProfile, cellTempProfile);
 	const PmppProfile = calculatePmpp(ImppProfile, VmppProfile);
 	const PdcProfile = calculateGeneratorPower(PmppProfile);
 	const PiProfile = calculatePiProfile(PdcProfile);
@@ -807,12 +816,14 @@ async function getCalcData() {
 	const MonthlyEac = calculateMonthlyEac(PacProfile);
 	const MonthlyEdc = calculateMonthlyEdc(PdcProfile);
 	const monthlyYf = MonthlyEac.map(
-		(val) => val / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules)
+		(val) => val / (moduleData.VmppStar * moduleData.ImppStar * 
+		generatordata.seriesModules * generatordata.parallelModules)
 	);
 	const MonthlyEnergykWh = MonthlyEac.map((val) => val / 1000);
 	const AnualEnergyW = calculateAnualEnergy(MonthlyEac);
 	const AnualEnergykWh = AnualEnergyW / 1000;
-	const anualYf = AnualEnergyW / (moduleData.VmppStar * moduleData.ImppStar * generatordata.seriesModules * generatordata.parallelModules);
+	const anualYf = AnualEnergyW / (moduleData.VmppStar * moduleData.ImppStar * 
+	generatordata.seriesModules * generatordata.parallelModules);
 
 	// createTable(radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody);
 
@@ -848,7 +859,8 @@ const getCoordinates = async () => {
 	const address = addressInput.value.split(' ').join('+');
 	const city = cityInput.value;
 	const postal = postalInput.value;
-	const requestURL = `${googleEndpoint}address=${address},${city},${postal},spain&key=${googleApiKey}`;
+	const requestURL = `${googleEndpoint}address=$
+	{address},${city},${postal},spain&key=${googleApiKey}`;
 	const response = await fetch(requestURL);
 	const data = await response.json();
 	console.log(data);
@@ -862,9 +874,11 @@ const getCoordinates = async () => {
 };
 
 const doCalculations = async (calcData) => {
-	const requestURL = `${serverEndpoint}/do-calculations?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}&angle=${
+	const requestURL = `${serverEndpoint}/do-calculations?latitude=
+	${calcData.placement.lat}&longitude=${calcData.placement.long}&angle=${
 		calcData.surfaceInfo.slope
-	}&area=${calcData.surfaceInfo.area}&orientation=${calcData.surfaceInfo.orientation}&applyDirtLevel=${
+	}&area=${calcData.surfaceInfo.area}&orientation=
+	${calcData.surfaceInfo.orientation}&applyDirtLevel=${
 		calcData.surfaceInfo.applyDirt
 	}&dirtLevel=${calcData.surfaceInfo.dirtLevel}`;
 
@@ -874,15 +888,18 @@ const doCalculations = async (calcData) => {
 };
 
 const calculateCellTemp = async (calcData, radiationData) => {
-	const requestURL = `${serverEndpoint}/temp-profile?latitude=${calcData.placement.lat}&longitude=${calcData.placement.long}`;
+	const requestURL = `${serverEndpoint}/temp-profile?latitude=
+	${calcData.placement.lat}&longitude=${calcData.placement.long}`;
 	const res = await fetch(requestURL);
 	const data = await res.json();
 	const tempProfiles = data.profiles;
-	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin }, index) => {
+	const cellTempProfiles = tempProfiles.map(({ hourlyTa, Tmax, Tmin },
+	 index) => {
 		const meanValue = radiationData.meanValues[index];
 		const TCProfile = hourlyTa.map((temp, index) => {
 			const Gef = meanValue.hourlyValues[index].Gtilt * 1000;
-			const Tc = 25 + (Gef * (moduleData.TONC - 20)) / 800; //Cambiar 1000 por la G en el plano inclinado a esa hora
+			const Tc = 25 + (Gef * (moduleData.TONC - 20)) / 800;
+			 //Cambiar 1000 por la G en el plano inclinado a esa hora
 			return Tc;
 		});
 		return { TCProfile, month: index + 1, Tmax, Tmin };
@@ -893,7 +910,8 @@ const calculateCellTemp = async (calcData, radiationData) => {
 const calculateVoc = (cellTempProfile) => {
 	const VocProfile = cellTempProfile.map(({ TCProfile }, index) => {
 		const VocArray = TCProfile.map((temp) => {
-			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * (-2.3 / 1000) * moduleData.Ncs;
+			const Voc = moduleData.VocStar + (temp - moduleData.Tc) * 
+			(-2.3 / 1000) * moduleData.Ncs;
 			return Voc;
 		});
 		return VocArray;
@@ -904,7 +922,8 @@ const calculateVoc = (cellTempProfile) => {
 const calculateIsc = (radiationData) => {
 	const IscProfile = radiationData.meanValues.map(({ hourlyValues }) => {
 		const IscArray = hourlyValues.map(({ Gtilt }) => {
-			const IscValue = Gtilt * 1000 * (moduleData.IscStar / moduleData.Gstar);
+			const IscValue = Gtilt * 1000 * 
+			(moduleData.IscStar / moduleData.Gstar);
 			return IscValue;
 		});
 		return IscArray;
@@ -917,17 +936,21 @@ const applyVariableFF = (VocProfile, IscProfile, cellTempProfile) => {
 	const RsStar =
 		(moduleData.VocStar / moduleData.Ncs -
 			moduleData.VmppStar / moduleData.Ncs +
-			moduleData.m * Vtn * Math.log(1 - moduleData.ImppStar / moduleData.IscStar)) /
+			moduleData.m * Vtn * Math.log(1 - moduleData.ImppStar /
+			 moduleData.IscStar)) /
 		(moduleData.ImppStar / moduleData.Ncp);
 
 	const rs = VocProfile.map((VocArray, arrIndex) => {
 		return VocArray.map((VocValue, valIndex) => {
-			return RsStar * ((moduleData.Ncs / moduleData.Ncp) * (IscProfile[arrIndex][valIndex] / VocValue));
+			return RsStar * ((moduleData.Ncs / moduleData.Ncp) *
+			 (IscProfile[arrIndex][valIndex] / VocValue));
 		});
 	});
 	const koc = VocProfile.map((VocArray, arrIndex) => {
 		return VocArray.map((VocValue, valIndex) => {
-			return VocValue / moduleData.Ncs / (moduleData.m * ((moduleData.Vt * (cellTempProfile[arrIndex].TCProfile[valIndex] + 273)) / 300));
+			return VocValue / moduleData.Ncs / (moduleData.m *
+			 ((moduleData.Vt * (cellTempProfile[arrIndex].TCProfile[valIndex]
+			  + 273)) / 300));
 		});
 	});
 	const DM0 = koc.map((kocArray, arrIndex) => {
@@ -949,7 +972,9 @@ const applyVariableFF = (VocProfile, IscProfile, cellTempProfile) => {
 
 	const vmpp = impp.map((imppArray, arrIndex) => {
 		return imppArray.map((imppValue, valIndex) => {
-			return 1 - Math.log(koc[arrIndex][valIndex] / DM[arrIndex][valIndex]) / koc[arrIndex][valIndex] - rs[arrIndex][valIndex] * imppValue;
+			return 1 - Math.log(koc[arrIndex][valIndex] / 
+			DM[arrIndex][valIndex]) / koc[arrIndex][valIndex] - 
+			rs[arrIndex][valIndex] * imppValue;
 		});
 	});
 
@@ -964,7 +989,8 @@ const applyVariableFF = (VocProfile, IscProfile, cellTempProfile) => {
 		});
 	});
 
-	return { VmppProfile: Vmpp, ImppProfile: Impp, RsStar, rs, koc, DM0, DM, impp, vmpp };
+	return { VmppProfile: Vmpp, ImppProfile: Impp, RsStar, rs,
+	 koc, DM0, DM, impp, vmpp };
 };
 
 const calculatePmpp = (ImppProfile, VmppProfile) => {
@@ -1096,7 +1122,9 @@ const createTable = (radiationData, MonthlyEac, MonthlyEdc, Yf, tableBody) => {
 	});
 };
 
-const saveData = (radiationData, MonthlyEnergykWh, AnualEnergykWh, monthlyYf, PacProfile, AnualYf, location, area, slope, orientation) => {
+const saveData = (radiationData, MonthlyEnergykWh, AnualEnergykWh,
+ monthlyYf, PacProfile, AnualYf, location,
+  area, slope, orientation) => {
 	const totalModules = generatordata.seriesModules * generatordata.parallelModules;
 	const totalArea = moduleData.moduleArea * totalModules;
 	const areaRelation = area / totalArea;
@@ -1145,7 +1173,8 @@ for (let i = minLat; i <= maxLat; i += latDiff) {
 		const lon = j.toFixed(2);
 		const lat = i.toFixed(2);
 		links.push(
-			`http://www.adrase.com/adrasemaps/php/monthly_popup.php?lat=${lat}&lon=${lon}&var_tipe=0`
+			`http://www.adrase.com/adrasemaps/php/monthly_popup.php?lat=${lat}&
+			lon=${lon}&var_tipe=0`
 		);
 		data.push({
 			lat,
@@ -1199,8 +1228,10 @@ Promise.all(textPromises).then(function(values) {
 <head>
     <title>Solar calculator</title>
     <link rel="stylesheet" href="./styles/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/
+    css/bulma.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases
+    /v5.7.2/css/all.css">
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 </head>
 
@@ -1336,7 +1367,9 @@ Promise.all(textPromises).then(function(values) {
                                     <select id="dirt-level">
                                         <option disabled>Suciedad</option>
                                         <option value="CLEAN">Limpio</option>
-                                        <option selected value="LOW">Nivel bajo</option>
+                                        <option selected value="LOW">
+                                        Nivel bajo
+                                        </option>
                                         <option value="MID">Nivel medio</option>
                                         <option value="HIGH">Nivel alto</option>
                                     </select>
@@ -1351,7 +1384,8 @@ Promise.all(textPromises).then(function(values) {
                 </div>
                 <!-- <div class="field">
                     <label class="checkbox">
-                        <input id="apply-dirt" type="checkbox" checked aria-checked="true">
+                        <input id="apply-dirt" type="checkbox" checked
+                         aria-checked="true">
                         Aplicar suciedad y angulo de incidencia (solo para pruebas)
                       </label>
                 </div> -->
@@ -1402,7 +1436,8 @@ Promise.all(textPromises).then(function(values) {
 	<head>
 		<title>Resultados</title>
 		<link rel="stylesheet" href="./styles/style.css" />
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/
+		bulma/0.6.2/css/bulma.css" />
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" />
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 		<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
@@ -1435,7 +1470,8 @@ Promise.all(textPromises).then(function(values) {
 			<div class="columns is-centered">
 				<div class="column is-half">
 					<div class="box">
-						<h1 class="title is-4 has-text-centered">Resultados del cálculo</h1>
+						<h1 class="title is-4 has-text-centered">
+						Resultados del cálculo</h1>
 						<h2 class="title is-5">Datos del emplazamiento:</h2>
 						<ul class="list">
 							<div class="data-grid">
@@ -1513,7 +1549,7 @@ Promise.all(textPromises).then(function(values) {
 
 \subsection{renderResults.js}
 
-\begin{lstlisting}[style=ES6, caption={public/renderResults.js}}]
+\begin{lstlisting}[style=ES6, caption={public/renderResults.js}]
 const results = JSON.parse(localStorage['results'])
 console.log(results)
 //Placement data

@@ -301,60 +301,6 @@ Con estos valores, lo que conseguimos es configurar una cuadricula con un tamañ
 
 Cada uno de los documentos generados es mandado al servidor y guardado en la base de datos. Posteriormente, utilizando una función nativa de MongoDB podremos encontrar el punto más cercano a las coordenadas que envía el usuario, y por tanto obtener una aproximación de la radiación el su emplazamiento.
 
-\section{Instrucciones}
 
-\subsection{Obtener la inclinación y orientación de la superficie}
 
-\subsubsection{Medición de la inclinación}
-
-En la aplicación se presentan dos campos dentro del formulario que debe rellenar el usuario, que requieren introducir la inclinación y la orientación de la superficie donde se va a instalar el generador fotovoltaico.
-
-Para ello, existen multitud de aplicaciones gratuitas en la tienda de aplicaciones tanto de Android como de iOS. En este caso, se va a mostrar un ejemplo con un dispositivo Android, pero esto se puede trasladar igualmente a un dispositivo iOS.
-
-La aplicación que se va a utilizar se llama \textit{Angle Meter}, y la empresa que lo desarrolla se llama \textit{Smart Tool Factory}. Se encuentra en la Play Store de Android de manera gratuita.
-
-Cuando se abre la aplicación por primera vez, encontramos lo siguiente:
-
-\begin{figure}[H]
-\includegraphics[scale=0.3]{app_homescreen}
-\centering
-\caption{Pantalla de inicio de la aplicación}
-\end{figure}
-
-A continuación, pulsamos el botón que sale remarcado con un círculo verde, lo que hará que cambie el modo de medición de ángulos a inclinación, que es el necesario para obtener el dato de la inclinación. Cuando la aplicación cambie a ese modo, se verá de la siguiente manera:
-
-\begin{figure}[H]
-\includegraphics[scale=0.3]{app_angle}
-\centering
-\caption{Medición de ángulo}
-\end{figure}
-
-A continuación, el dispositivo se debe colocar según la figura que se muestra abajo, teniendo en cuenta que la imagen se muestra con una perspectiva perpendicular a la superficie.
-\begin{figure}[H]
-\includegraphics[scale=0.5]{phone_placement}
-\centering
-\caption{Posición del dispositivo}
-\end{figure}
-
-De esta manera, obtenemos la inclinación de la superficie en grados.
-
-\subsubsection{Medición de la orientación}
-
-Para obtener la orientación de la superficie, debemos cambiar una vez más el modo de funcionamiento de la aplicación, dejando el dispositivo en la mismo posición que en la medición de inclinación.
-
-Para ello, abrimos el menú desde la izquierda y pulsamos en la opción llamada \textit{Compass}, como se muestra en la siguiente figura.
-
-\begin{figure}[H]
-\includegraphics[scale=0.3]{app_menu_compass}
-\centering
-\caption{Opción brújula del menú}
-\end{figure}
-
-Una vez abierta la brújula, observamos la medición que nos muestra en la parte inferior central de la pantalla. A esa medición debemos restarle 180 $\degree$ para obtener el valor que necesita la aplicación de cálculo. Es decir, si observamos una orientación de 193 $\degree$, en el formulario introduciremos 13 $\degree$. En la figura de abajo se muestra como se ve la pantalla de la brújula.
-
-\begin{figure}[H]
-\includegraphics[scale=0.3]{app_compass}
-\centering
-\caption{Opción brújula del menú}
-\end{figure}
 
